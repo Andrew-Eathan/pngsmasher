@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
+    <PackageReference Include="ILGPU" Version="1.1.0" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="11.1.0" />
   </ItemGroup>
 
 </Project>
