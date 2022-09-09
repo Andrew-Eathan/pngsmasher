@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 /// has amazing speed, thank you random stranger
 /// </summary>
 
-namespace pngfucker.NET
+namespace pngsmasher
 {
-    public class Utils
+    public static class Utils
     {
+        public static string log = "";
         public struct Offset
         {
             public int Start;
@@ -26,19 +27,66 @@ namespace pngfucker.NET
             }
         }
 
+        public struct Size
+        {
+            public int Width;
+            public int Height;
+        }
+
+        public class ArrayRange<T>
+        {
+            ArraySegment<T> ts;
+            public ArrayRange(T[] arr, int start, int end)
+            {
+                var cstart = Math.Max(start, 0);
+                var cend = Math.Min(end - start, arr.Length - start);
+                ts = new ArraySegment<T>(arr, cstart, cend);
+            }
+            public T[] Array
+            {
+                get
+                {
+                    return ts.ToArray();
+                }
+            }
+        }
+
+        public static void BlitBuffer(this byte[] target, byte[] data, int offset, int add = 0)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                target[i + offset] = (byte)(data[i] + add);
+            }
+        }
+
         public static int PFFloor(float min, float max, Types.SeedRand rand)
         {
-            return (int)Math.Floor(rand.Generate(min, max));
+            var v = (int)Math.Floor(rand.Generate(min, max));
+            log += v + "\n";
+            return v;
         }
 
         public static int PFCeil(float min, float max, Types.SeedRand rand)
         {
-            return (int)Math.Ceiling(rand.Generate(min, max));
+            var v = (int)Math.Ceiling(rand.Generate(min, max));
+            return v;
         }
 
         public static int SnapNumber(float num, float step)
         {
             return (int)(Math.Round(num / step) * step);
+        }
+
+        public static byte[] Combine(byte[][] arrays)
+        {
+            byte[] bytes = new byte[0];
+
+            foreach (byte[] b in arrays)
+            {
+                bytes = bytes.Concat(b).ToArray();
+            }
+
+            return bytes.ToArray();
         }
 
         public static byte[] ShiftLeft(byte[] value, int bitcount)
