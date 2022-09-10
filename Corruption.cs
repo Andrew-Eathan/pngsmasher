@@ -97,6 +97,36 @@ namespace pngsmasher
             };
         }
 
+        public static byte[] CrunchImage(byte[] rgba, int width, int height, int crwidth, int crheight, bool returnSameSize = false)
+        {
+            // jimp source used as reference https://github.com/oliver-moran/jimp/blob/master/packages/plugin-resize/src/modules/resize2.js#L24
+            byte[] crunched = new byte[
+                returnSameSize
+                 ? rgba.Length
+                   : crwidth * crheight * 4
+            ];
+
+            int targetW = returnSameSize ? width : crwidth;
+            int targetH = returnSameSize ? height : crheight;
+
+            for (int y = 0; y < targetH; y++)
+            {
+                for (int x = 0; x < targetW; x++)
+                {
+                    var magic = width / crwidth;
+                    var xCrunch = (int)(Math.Floor((double)x / width * crwidth) * magic);
+                    var yCrunch = (int)(Math.Floor((double)y / height * crheight) * magic);
+                    var dstBufferIdx = (y * targetW + x) * 4;
+                    var crunchBufferIdx = (yCrunch * width + xCrunch) * 4;
+
+                    for (int i = 0; i < 4; i++)
+                        crunched[dstBufferIdx++] = rgba[crunchBufferIdx++];
+                }
+            }
+
+            return crunched;
+        }
+
         public static void CorruptImage(MagickImage img, Types.PFOptions options, Types.SeedRand srand, int width, int height)
         {
             if (options.sizeMul / options.sizeDiv != 1 || (options.sizeMul != 0 && options.sizeDiv != 0))
@@ -117,6 +147,7 @@ namespace pngsmasher
             // crunch effect
             float cwidth = -1;
             float cheight = -1;
+
             if (options.crunchPercent != 100 || (options.crunchWidth != 0 && options.crunchHeight != 0))
             {
                 bool usePercent = options.crunchWidth == 0 && options.crunchHeight == 0;
@@ -127,7 +158,6 @@ namespace pngsmasher
 
                 img.InterpolativeResize((int)cwidth, (int)cheight, PixelInterpolateMethod.Nearest);
             }
-
 
             // main corruption
             var pixels = img.GetPixels();
