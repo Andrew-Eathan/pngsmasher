@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using pngsmasher;
 using ImageMagick;
-using ArrayRange = pngsmasher.Utils.ArrayRange<byte>;
 
 namespace pngsmasher
 {

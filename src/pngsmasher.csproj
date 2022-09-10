@@ -3,7 +3,17 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="pngsmasher.test\**" />
+    <Compile Remove="tests\**" />
+    <EmbeddedResource Remove="pngsmasher.test\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <None Remove="pngsmasher.test\**" />
+    <None Remove="tests\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Corruption - Copy.cs" />

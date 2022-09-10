@@ -31,9 +31,9 @@ namespace pngsmasher
 
             foreach (Offset region in regionArray)
             {
-                var buff = new Utils.ArrayRange<byte>(rgba, region.Start, region.End).Array;
+                var buff = rgba[region.Start..region.End];
                 var shiftrand = Utils.PFFloor(1, 32, rand);
-                buff = Utils.ShiftLeft(buff, shiftrand);
+                Utils.Shift(buff, buff, -shiftrand);
                 rgba.BlitBuffer(buff, region.Start, -10);
             }
         }
@@ -59,15 +59,15 @@ namespace pngsmasher
 
                     // to make the image look sliced and shifted midway
 
-                    var sliceClean = new Utils.ArrayRange<byte>(rgba, 0, splitpos + shift).Array;
+                    var sliceClean = rgba[..(splitpos + shift)];
                     buffers.Add(sliceClean);
 
-                    var sliceShifted = new Utils.ArrayRange<byte>(rgba, splitpos, rgba.Length).Array;
+                    var sliceShifted = rgba[splitpos..rgba.Length];
                     sliceShifted = ShiftImage(sliceShifted, bitShiftAmnt);
                     buffers.Add(sliceShifted);
 
-                    var combined = Utils.Combine(buffers.ToArray());
-                    rgba = new Utils.ArrayRange<byte>(combined, 0, rgba.Length).Array;
+                    var combined = Utils.Combine(buffers);
+                    rgba = combined[0..rgba.Length];
                 }
 
                 // pad array in case of a shift that takes away too much data
@@ -79,11 +79,14 @@ namespace pngsmasher
 
         public static byte[] ShiftImage(byte[] rgba, int bitCount)
         {
-            if (bitCount == 0) return rgba;
+            if (bitCount == 0) 
+                return rgba;
 
-            return bitCount < 0
-                ? Utils.ShiftLeft(rgba, Math.Abs(bitCount))
-                : Utils.ShiftRight(rgba, bitCount);
+            byte[] result = new byte[rgba.Length];
+
+            Utils.Shift(rgba, result, bitCount);
+
+            return result;
         }
         
         public static Utils.Size CalculateModifiedWH(int width, int height, Types.PFOptions options)
