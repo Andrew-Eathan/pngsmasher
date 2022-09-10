@@ -33,7 +33,7 @@ namespace pngsmasher
             {
                 var buff = rgba[region.Start..region.End];
                 var shiftrand = Utils.PFFloor(1, 32, rand);
-                Utils.Shift(buff, buff, -shiftrand);
+                BitShift(buff, buff, -shiftrand);
                 rgba.BlitBuffer(buff, region.Start, -10);
             }
         }
@@ -63,7 +63,7 @@ namespace pngsmasher
                     buffers.Add(sliceClean);
 
                     var sliceShifted = rgba[splitpos..rgba.Length];
-                    sliceShifted = ShiftImage(sliceShifted, bitShiftAmnt);
+                    BitShift(sliceShifted, sliceShifted, bitShiftAmnt);
                     buffers.Add(sliceShifted);
 
                     var combined = Utils.Combine(buffers);
@@ -77,18 +77,41 @@ namespace pngsmasher
             }
         }
 
-        public static byte[] ShiftImage(byte[] rgba, int bitCount)
+        public static void BitShift(Span<byte> input, Span<byte> output, int direction)
         {
-            if (bitCount == 0) 
-                return rgba;
+            if (input.Length != output.Length)
+                throw new InvalidOperationException("Input and output must have the same size.");
 
-            byte[] result = new byte[rgba.Length];
+            bool shiftRight = direction > 0;
+            int bits = Math.Abs(direction);
 
-            Utils.Shift(rgba, result, bitCount);
+            int byteShifts = bits / 8;
+            int bitShifts = bits % 8;
 
-            return result;
+            var from = shiftRight ? input[..^byteShifts] : input[byteShifts..];
+            var to = shiftRight ? output[byteShifts..] : output[..^byteShifts];
+
+            from.CopyTo(to);
+
+            if (bitShifts != 0)
+            {
+                if (shiftRight)
+                {
+                    for (int i = output.Length - 1; i > 0; i--)
+                        output[i] = (byte)((output[i] >> bitShifts) | (output[i - 1] << 8 - bitShifts));
+
+                    output[0] >>= bitShifts;
+                }
+                else
+                {
+                    for (int i = 0; i < output.Length - 1; i++)
+                        output[i] = (byte)((output[i] << bitShifts) | (output[i + 1] >> 8 - bitShifts));
+
+                    output[^1] <<= bitShifts;
+                }
+            }
         }
-        
+
         public static Utils.Size CalculateModifiedWH(int width, int height, Types.PFOptions options)
         {
             var fmul = options.sizeMul / options.sizeDiv;
@@ -168,7 +191,7 @@ namespace pngsmasher
 
             if (options.bufferShiftBits != 0)
             {
-                bytes = ShiftImage(bytes, options.bufferShiftBits);
+                BitShift(bytes, bytes, options.bufferShiftBits);
             }
 
             if (options.bufferCorruptRegions > 0)

@@ -71,40 +71,5 @@ namespace pngsmasher
 
             return bytes;
         }
-
-        public static void Shift(Span<byte> input, Span<byte> output, int direction)
-        {
-            if (input.Length != output.Length)
-                throw new InvalidOperationException("Input and output must have the same size.");
-
-            bool shiftRight = direction > 0;
-            int bits = Math.Abs(direction);
-
-            int byteShifts = bits / 8;
-            int bitShifts = bits % 8;
-
-            var from = shiftRight ? input[..^byteShifts] : input[byteShifts..];
-            var to = shiftRight ? output[byteShifts..] : output[..^byteShifts];
-
-            from.CopyTo(to);
-
-            if (bitShifts != 0)
-            {
-                if (shiftRight)
-                {
-                    for (int i = output.Length - 1; i > 0; i--)
-                        output[i] = (byte)((output[i] >> bitShifts) | (output[i - 1] << 8 - bitShifts));
-
-                    output[0] >>= bitShifts;
-                }
-                else
-                {
-                    for (int i = 0; i < output.Length - 1; i++)
-                        output[i] = (byte)((output[i] << bitShifts) | (output[i + 1] >> 8 - bitShifts));
-
-                    output[^1] <<= bitShifts;
-                }
-            }
-        }
     }
 }
