@@ -20,7 +20,7 @@ namespace pngsmasher
         {
             var settings = new MagickReadSettings();
             settings.ColorType = ColorType.TrueColorAlpha;
-            Types.SeedRand srand = new Types.SeedRand(2);
+            Types.SeedRand srand = new Types.SeedRand(1);
 
             using (var img = new MagickImage("eathan.png", settings))
             {
@@ -35,7 +35,10 @@ namespace pngsmasher
                 Console.WriteLine(img.Width);
                 Console.WriteLine(img.Height);
 
-                Corruption.CorruptImage(img, options, srand, img.Width, img.Height);
+                var pixels = img.GetPixels();
+                var bytes = pixels.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
+
+                pixels.SetPixels(Corruption.OldStyleCorruptImage(bytes, options, srand, img.Width, img.Height));
                 img.Write("out.png");
             }
 
@@ -65,7 +68,7 @@ namespace pngsmasher
                 Console.WriteLine(img.Height);
                 var pman = img.GetPixels();
 
-                Corruption.CorruptImage(img, options, srand, img.Width, img.Height);
+                //Corruption.CorruptImage(img, options, srand, img.Width, img.Height);
 
                 MagickImage background = new MagickImage(MagickColors.Black, img.Width, img.Height);
                 img.Write("out.png");

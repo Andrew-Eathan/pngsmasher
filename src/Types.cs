@@ -26,8 +26,8 @@ namespace pngsmasher
             public int splitsMin = 0;
             public int splitsMax = 100;
 
-            // Contrast image (1 is neutral, 0 is low, 2 is high)
-            public float contrast = 1f;
+            // Contrast image (0 is neutral, -1 is lowest, 1 is highest)
+            public float contrast = 0f;
 
             // Multiply image size, 1 = ignore
             public int sizeMul = 1;
@@ -36,7 +36,7 @@ namespace pngsmasher
             public int sizeDiv = 1;
 
             // Percentage (0-100), it resizes the image to this percentage in pre-processing and resizes it back to normal in post-processing
-            public int crunchPercent = 20; // width * 0.75, height * 0.75
+            public int crunchPercent = 25; // width * 0.75, height * 0.75
 
             // Crunch the image to this width/height (ignores percentage if both crunch width and height aren't 0)
             // Like region size, setting a negative value acts as a divisor to the width/height

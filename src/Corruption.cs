@@ -33,7 +33,7 @@ namespace pngsmasher
             {
                 var buff = rgba[region.Start..region.End];
                 var shiftrand = Utils.PFFloor(1, 32, rand);
-                Utils.Shift(buff, buff, -shiftrand);
+                BitShift(buff, buff, -shiftrand);
                 rgba.BlitBuffer(buff, region.Start, -10);
             }
         }
@@ -63,7 +63,7 @@ namespace pngsmasher
                     buffers.Add(sliceClean);
 
                     var sliceShifted = rgba[splitpos..rgba.Length];
-                    sliceShifted = ShiftImage(sliceShifted, bitShiftAmnt);
+                    BitShift(sliceShifted, sliceShifted, bitShiftAmnt);
                     buffers.Add(sliceShifted);
 
                     var combined = Utils.Combine(buffers);
@@ -77,18 +77,41 @@ namespace pngsmasher
             }
         }
 
-        public static byte[] ShiftImage(byte[] rgba, int bitCount)
+        public static void BitShift(Span<byte> input, Span<byte> output, int direction)
         {
-            if (bitCount == 0) 
-                return rgba;
+            if (input.Length != output.Length)
+                throw new InvalidOperationException("Input and output must have the same size.");
 
-            byte[] result = new byte[rgba.Length];
+            bool shiftRight = direction > 0;
+            int bits = Math.Abs(direction);
 
-            Utils.Shift(rgba, result, bitCount);
+            int byteShifts = bits / 8;
+            int bitShifts = bits % 8;
 
-            return result;
+            var from = shiftRight ? input[..^byteShifts] : input[byteShifts..];
+            var to = shiftRight ? output[byteShifts..] : output[..^byteShifts];
+
+            from.CopyTo(to);
+
+            if (bitShifts != 0)
+            {
+                if (shiftRight)
+                {
+                    for (int i = output.Length - 1; i > 0; i--)
+                        output[i] = (byte)((output[i] >> bitShifts) | (output[i - 1] << 8 - bitShifts));
+
+                    output[0] >>= bitShifts;
+                }
+                else
+                {
+                    for (int i = 0; i < output.Length - 1; i++)
+                        output[i] = (byte)((output[i] << bitShifts) | (output[i + 1] >> 8 - bitShifts));
+
+                    output[^1] <<= bitShifts;
+                }
+            }
         }
-        
+
         public static Utils.Size CalculateModifiedWH(int width, int height, Types.PFOptions options)
         {
             var fmul = options.sizeMul / options.sizeDiv;
@@ -100,95 +123,98 @@ namespace pngsmasher
             };
         }
 
-        public static byte[] CrunchImage(byte[] rgba, int width, int height, int crwidth, int crheight, bool returnSameSize = false)
+        public static byte[] CrunchImage(byte[] rgba, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
         {
             // jimp source used as reference https://github.com/oliver-moran/jimp/blob/master/packages/plugin-resize/src/modules/resize2.js#L24
-            byte[] crunched = new byte[
-                returnSameSize
-                 ? rgba.Length
-                   : crwidth * crheight * 4
-            ];
 
-            int targetW = returnSameSize ? width : crwidth;
-            int targetH = returnSameSize ? height : crheight;
-
-            for (int y = 0; y < targetH; y++)
-            {
-                for (int x = 0; x < targetW; x++)
-                {
-                    var magic = width / crwidth;
-                    var xCrunch = (int)(Math.Floor((double)x / width * crwidth) * magic);
-                    var yCrunch = (int)(Math.Floor((double)y / height * crheight) * magic);
-                    var dstBufferIdx = (y * targetW + x) * 4;
-                    var crunchBufferIdx = (yCrunch * width + xCrunch) * 4;
-
-                    for (int i = 0; i < 4; i++)
-                        crunched[dstBufferIdx++] = rgba[crunchBufferIdx++];
-                }
-            }
-
-            return crunched;
-        }
-
-        public static byte[] CrunchImage1(byte[] rgba, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
-        {
-            byte[] crunched = new byte[
+            byte[] output = new byte[
                 dstWidth * dstHeight * 4
             ];
 
-            // source = the original image
-            // dest = the resized image
-
-            for (int yDst = 0; yDst < dstHeight; yDst++)
+            for (int i = 0; i < dstHeight; i++)
             {
-                for (int xDst = 0; xDst < dstWidth; xDst++)
+                for (int j = 0; j < dstWidth; j++)
                 {
-                    int dstIdx = (yDst * dstWidth + xDst) * 4;
-                    int xSrc = (int)((float)xDst / dstWidth * srcWidth);
-                    int ySrc = (int)((float)yDst / dstHeight * srcHeight);
-                    int srcIdx = (ySrc * srcWidth + xSrc) * 4;
+                    int posDst = (i * dstWidth + j) * 4;
 
-                    for (int i = 0; i < 4; i++)
-                    {
-                        if (srcIdx >= rgba.Length) break;
-                        if (dstIdx >= crunched.Length) break;
+                    var iSrc = Math.Floor((double)i * srcHeight / dstHeight);
+                    var jSrc = Math.Floor((double)j * srcWidth / dstWidth);
+                    int posSrc = (int)((iSrc * srcWidth + jSrc) * 4);
 
-                        crunched[dstIdx++] = rgba[srcIdx++];
-                    }
+                    for (int k = 0; k < 4; k++)
+                        output[posDst++] = rgba[posSrc++];
                 }
             }
 
-            return crunched;
+            return output;
         }
 
-        public static byte[] CrunchImage2(byte[] rgba, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
+        private static byte ContrastValue(int input, float factor)
         {
-            return new byte[0];
+            int value = (int)Math.Floor(factor * (input - 127) + 127);
+
+            return (byte)
+            (
+                value < 0
+                    ? 0
+                : value > 255
+                    ? 255
+                : value
+            );
         }
 
-        public static void CorruptImage(MagickImage img, Types.PFOptions options, Types.SeedRand srand, int width, int height)
+        private static byte BrightenValue(int input, float val)
         {
+            if (val < 0)
+                return (byte)(input * (1 + val));
+            else
+                return (byte)(input + (255 - input) * val);
+        }
+
+        public static void ContrastImage(byte[] input, byte[] output, float val)
+        {
+            if (val < -1 || val > +1)
+                throw new ArgumentException("Contrast value must be between -1 and +1 (zero is no change)");
+
+            float factor = (val + 1) / (1 - val);
+
+            for (int i = 0; i < output.Length; i += 4)
+                for (int j = 4; --j > 0;)
+                    output[i] = ContrastValue(input[i], factor);
+        }
+
+        public static void BrightenImage(byte[] input, byte[] output, float val)
+        {
+            if (val < -1 || val > +1)
+                throw new ArgumentException("Brightness value must be between -1 and +1 (zero is no change)");
+
+            for (int i = 0; i < output.Length; i += 4)
+                for (int j = 4; --j > 0;)
+                    output[i] = BrightenValue(input[i], val);
+        }
+
+        public static byte[] OldStyleCorruptImage(byte[] rgba, Types.PFOptions options, Types.SeedRand srand, int width, int height)
+        {
+            byte[] rgba_out = rgba.ToArray(); // clone
+            int imgwidth = width;
+            int imgheight = height;
+
             if (options.sizeMul / options.sizeDiv != 1 || (options.sizeMul != 0 && options.sizeDiv != 0))
             {
                 // image size multiplier and divider
                 Utils.Size calc = CalculateModifiedWH(width, height, options);
-                img.InterpolativeResize(calc.Width, calc.Height, PixelInterpolateMethod.Nearest);
+                rgba_out = CrunchImage(rgba_out, width, height, calc.Width, calc.Height);
             }
 
-            if (options.contrast != 1)
+            // contrast
+            if (options.contrast != 0)
             {
-                img.BrightnessContrast(new Percentage(100), new Percentage(options.contrast * 100));
+                ContrastImage(rgba_out, rgba_out, options.contrast);
             }
-
-            // shid quality
-            img.Quality = options.ExportQuality;
 
             // crunch effect
             float cwidth = -1;
             float cheight = -1;
-
-            int imgwidth = width;
-            int imgheight = height;
 
             if (options.crunchPercent != 100 || (options.crunchWidth != 0 && options.crunchHeight != 0))
             {
@@ -201,51 +227,31 @@ namespace pngsmasher
                 imgwidth = (int)cwidth;
                 imgheight = (int)cheight;
 
-                var pixels1 = img.GetPixels();
-                var bytes1 = pixels1.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
-                bytes1 = CrunchImage1(bytes1, width, height, imgwidth, imgheight);
-                pixels1.SetPixels(bytes1);
-                //img.InterpolativeResize((int)cwidth, (int)cheight, PixelInterpolateMethod.Nearest);
+                rgba_out = CrunchImage(rgba_out, width, height, imgwidth, imgheight);
             }
-
-
-            // main corruption
-            var pixels = img.GetPixels();
-            var bytes = pixels.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
-
-            /*var settings = new MagickReadSettings();
-            settings.ColorType = ColorType.TrueColorAlpha;
-            using (var img1 = new MagickImage("eathan.png", settings))
-            {
-                img1.ColorType = ColorType.TrueColorAlpha;
-                img1.Resize(imgwidth, imgheight);
-                img1.GetPixels().SetPixels(bytes);
-                img1.Write("test.png");
-            }*/
 
             if (options.bufferShiftBits != 0)
             {
-                bytes = ShiftImage(bytes, options.bufferShiftBits);
+                BitShift(rgba_out, rgba_out, options.bufferShiftBits);
             }
 
             if (options.bufferCorruptRegions > 0)
             {
-                RegionalCorrupt(ref bytes, options.bufferCorruptRegions, options.regionMinSize, options.regionMaxSize, srand, imgwidth, imgheight);
+                RegionalCorrupt(ref rgba_out, options.bufferCorruptRegions, options.regionMinSize, options.regionMaxSize, srand, imgwidth, imgheight);
             }
 
             if (options.imageSplits > 0)
             {
-                ImageSplitCorrupt(ref bytes, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
+                ImageSplitCorrupt(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
             }
-
-            //pixels.SetPixels(bytes);
 
             // resize to normal after crunching
             if (cwidth != -1 && cheight != -1)
             {
-                //bytes = CrunchImage1(bytes, imgwidth, imgheight, width, height);
-                img.InterpolativeResize(width, height, PixelInterpolateMethod.Nearest);
+                rgba_out = CrunchImage(rgba_out, imgwidth, imgheight, width, height);
             }
+
+            return rgba_out;
         }
     }
 }
