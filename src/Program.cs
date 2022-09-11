@@ -36,7 +36,6 @@ namespace pngsmasher
                 Console.WriteLine(img.Height);
 
                 Corruption.CorruptImage(img, options, srand, img.Width, img.Height);
-
                 img.Write("out.png");
             }
 

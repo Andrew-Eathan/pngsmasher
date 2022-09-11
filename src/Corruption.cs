@@ -67,7 +67,7 @@ namespace pngsmasher
                     buffers.Add(sliceShifted);
 
                     var combined = Utils.Combine(buffers);
-                    rgba = combined[0..rgba.Length];
+                    rgba = combined;
                 }
 
                 // pad array in case of a shift that takes away too much data
@@ -130,6 +130,42 @@ namespace pngsmasher
             return crunched;
         }
 
+        public static byte[] CrunchImage1(byte[] rgba, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
+        {
+            byte[] crunched = new byte[
+                dstWidth * dstHeight * 4
+            ];
+
+            // source = the original image
+            // dest = the resized image
+
+            for (int yDst = 0; yDst < dstHeight; yDst++)
+            {
+                for (int xDst = 0; xDst < dstWidth; xDst++)
+                {
+                    int dstIdx = (yDst * dstWidth + xDst) * 4;
+                    int xSrc = (int)((float)xDst / dstWidth * srcWidth);
+                    int ySrc = (int)((float)yDst / dstHeight * srcHeight);
+                    int srcIdx = (ySrc * srcWidth + xSrc) * 4;
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (srcIdx >= rgba.Length) break;
+                        if (dstIdx >= crunched.Length) break;
+
+                        crunched[dstIdx++] = rgba[srcIdx++];
+                    }
+                }
+            }
+
+            return crunched;
+        }
+
+        public static byte[] CrunchImage2(byte[] rgba, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
+        {
+            return new byte[0];
+        }
+
         public static void CorruptImage(MagickImage img, Types.PFOptions options, Types.SeedRand srand, int width, int height)
         {
             if (options.sizeMul / options.sizeDiv != 1 || (options.sizeMul != 0 && options.sizeDiv != 0))
@@ -151,6 +187,9 @@ namespace pngsmasher
             float cwidth = -1;
             float cheight = -1;
 
+            int imgwidth = width;
+            int imgheight = height;
+
             if (options.crunchPercent != 100 || (options.crunchWidth != 0 && options.crunchHeight != 0))
             {
                 bool usePercent = options.crunchWidth == 0 && options.crunchHeight == 0;
@@ -159,12 +198,30 @@ namespace pngsmasher
                 if (cwidth < 0) cwidth = width / Math.Abs(cwidth);
                 if (cheight < 0) cheight = height / Math.Abs(cheight);
 
-                img.InterpolativeResize((int)cwidth, (int)cheight, PixelInterpolateMethod.Nearest);
+                imgwidth = (int)cwidth;
+                imgheight = (int)cheight;
+
+                var pixels1 = img.GetPixels();
+                var bytes1 = pixels1.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
+                bytes1 = CrunchImage1(bytes1, width, height, imgwidth, imgheight);
+                pixels1.SetPixels(bytes1);
+                //img.InterpolativeResize((int)cwidth, (int)cheight, PixelInterpolateMethod.Nearest);
             }
+
 
             // main corruption
             var pixels = img.GetPixels();
             var bytes = pixels.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
+
+            /*var settings = new MagickReadSettings();
+            settings.ColorType = ColorType.TrueColorAlpha;
+            using (var img1 = new MagickImage("eathan.png", settings))
+            {
+                img1.ColorType = ColorType.TrueColorAlpha;
+                img1.Resize(imgwidth, imgheight);
+                img1.GetPixels().SetPixels(bytes);
+                img1.Write("test.png");
+            }*/
 
             if (options.bufferShiftBits != 0)
             {
@@ -173,19 +230,20 @@ namespace pngsmasher
 
             if (options.bufferCorruptRegions > 0)
             {
-                RegionalCorrupt(ref bytes, options.bufferCorruptRegions, options.regionMinSize, options.regionMaxSize, srand, img.Width, img.Height);
+                RegionalCorrupt(ref bytes, options.bufferCorruptRegions, options.regionMinSize, options.regionMaxSize, srand, imgwidth, imgheight);
             }
 
             if (options.imageSplits > 0)
             {
-                ImageSplitCorrupt(ref bytes, options.imageSplits, options.splitsMin, options.splitsMax, srand, img.Width, img.Height);
+                ImageSplitCorrupt(ref bytes, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
             }
 
-            pixels.SetPixels(bytes);
+            //pixels.SetPixels(bytes);
 
             // resize to normal after crunching
             if (cwidth != -1 && cheight != -1)
             {
+                //bytes = CrunchImage1(bytes, imgwidth, imgheight, width, height);
                 img.InterpolativeResize(width, height, PixelInterpolateMethod.Nearest);
             }
         }
