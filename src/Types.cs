@@ -27,7 +27,7 @@ namespace pngsmasher
             public int splitsMax = 100;
 
             // Contrast image (0 is neutral, -1 is lowest, 1 is highest)
-            public float contrast = 0f;
+            public float contrast = 1f;
 
             // Multiply image size, 1 = ignore
             public int sizeMul = 1;

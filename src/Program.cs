@@ -22,6 +22,8 @@ namespace pngsmasher
             settings.ColorType = ColorType.TrueColorAlpha;
             Types.SeedRand srand = new Types.SeedRand(1);
 
+            Stopwatch time = new Stopwatch();
+
             using (var img = new MagickImage("eathan.png", settings))
             {
                 img.ColorType = ColorType.TrueColorAlpha;
@@ -38,42 +40,15 @@ namespace pngsmasher
                 var pixels = img.GetPixels();
                 var bytes = pixels.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
 
-                pixels.SetPixels(Corruption.OldStyleCorruptImage(bytes, options, srand, img.Width, img.Height));
+                time.Start();
+                bytes = Corruption.OldStyleCorruptImage(bytes, options, srand, img.Width, img.Height);
+                time.Stop();
+
+                pixels.SetPixels(bytes);
+
                 img.Write("out.png");
             }
 
-            return;
-
-
-
-
-
-
-
-
-
-
-
-
-            Stopwatch time = new Stopwatch();
-            time.Start();
-
-            //Types.SeedRand srand = new Types.SeedRand(69);
-
-            using (var img = new MagickImage("img.png", settings))
-            {
-                img.ColorType = ColorType.TrueColorAlpha;
-                Types.PFOptions options = new Types.PFOptions();
-                Console.WriteLine(img.Width);
-                Console.WriteLine(img.Height);
-                var pman = img.GetPixels();
-
-                //Corruption.CorruptImage(img, options, srand, img.Width, img.Height);
-
-                MagickImage background = new MagickImage(MagickColors.Black, img.Width, img.Height);
-                img.Write("out.png");
-            }
-            time.Stop();
             Console.WriteLine("Finished in " + time.Elapsed.TotalSeconds + "s (" + time.ElapsedMilliseconds + "ms)");
         }
     }
