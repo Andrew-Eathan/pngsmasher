@@ -20,7 +20,7 @@ namespace pngsmasher
         {
             var settings = new MagickReadSettings();
             settings.ColorType = ColorType.TrueColorAlpha;
-            Types.SeedRand srand = new Types.SeedRand(1);
+            Types.SeedRand srand = new Types.SeedRand(2);
 
             Stopwatch time = new Stopwatch();
 
@@ -28,9 +28,10 @@ namespace pngsmasher
             {
                 img.ColorType = ColorType.TrueColorAlpha;
                 Types.PFOptions options = new Types.PFOptions();
-                options.blackBackground = true;
+                options.corruptRegions = 2;
+                /*options.blackBackground = true;
                 options.bufferShiftBits = 0;
-                options.imageSplits = 1;
+                options.imageSplits = 1;*/
                 options.regionMaxSize = 30;
                 options.regionMinSize = 10;
                 options.seed = 2;

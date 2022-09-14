@@ -14,15 +14,19 @@ namespace pngsmasher
 {
     public static class Utils
     {
-        public struct Offset
+        public struct Region
         {
             public int Start;
             public int End;
+            public int BitshiftAmount;
+            public int AddValue;
 
-            public Offset(int Start, int End)
+            public Region(int Start, int End, int BitshiftAmount, int AddValue)
             {
                 this.Start = Start;
                 this.End = End;
+                this.BitshiftAmount = BitshiftAmount;
+                this.AddValue = AddValue;
             }
         }
 

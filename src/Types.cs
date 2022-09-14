@@ -15,7 +15,7 @@ namespace pngsmasher
             public int bufferShiftBits = 0;
 
             // Corrupts regions of an image
-            public int bufferCorruptRegions = 0;
+            public int corruptRegions = 0;
             // Min region size, negative values means the height is divided by the absolute value
             public int regionMinSize = -25; // regionMinSize = height / 25
             // Max region size, negative values means the height is divided by the absolute value
@@ -27,7 +27,7 @@ namespace pngsmasher
             public int splitsMax = 100;
 
             // Contrast image (0 is neutral, -1 is lowest, 1 is highest)
-            public float contrast = 1f;
+            public float contrast = 0f;
 
             // Multiply image size, 1 = ignore
             public int sizeMul = 1;
@@ -85,7 +85,7 @@ namespace pngsmasher
                 var ret = min + currentSeed / 233280 * (max - min);
 
                 if (dontShuffleSeed) currentSeed = tmpSeed;
-                Console.WriteLine(ret);
+                Console.WriteLine("RAND - " + min + " " + max + " " + ret);
                 return ret;
             }
 

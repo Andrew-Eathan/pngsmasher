@@ -5,36 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using ImageMagick;
 using pngsmasher;
-using Offset = pngsmasher.Utils.Offset;
+using static pngsmasher.Utils;
+using Region = pngsmasher.Utils.Region;
 
 namespace pngsmasher
 {
     public static class Corruption
     {
-        public static void RegionalCorrupt(ref byte[] rgba, int regions, int minheight, int maxheight, Types.SeedRand rand, int width, int height)
+        public static void RegionalCorrupt(ref byte[] rgba, List<Region> regions, int minheight, int maxheight, int width, int height)
         {
-            List<Offset> regionArray = new List<Offset>();
-
-            for (int i = 0; i < regions; i++)
+            foreach (Region region in regions)
             {
-                int start = Utils.PFFloor(0, width * height * 4, rand);
-                int end = start + Utils.PFFloor(width * 4 * minheight, width * 4 * maxheight, rand);
-                regionArray.Add(new Offset(start, end));
-            }
-
-            int i11 = 0;
-            foreach (Offset i in regionArray)
-            {
-                i11++;
-                Console.WriteLine(i11 + ": " + i.Start + " to " + i.End);
-            }
-
-            foreach (Offset region in regionArray)
-            {
-                var buff = rgba[region.Start..region.End];
-                var shiftrand = Utils.PFFloor(1, 32, rand);
-                BitShift(buff, buff, -shiftrand);
-                rgba.BlitBuffer(buff, region.Start, -10);
+                var buff = rgba[region.Start..Math.Clamp(region.End, 0, rgba.Length - 1)];
+                BitShift(buff, buff, region.BitshiftAmount);
+                rgba.BlitBuffer(buff, region.Start, region.AddValue);
             }
         }
 
@@ -235,9 +219,26 @@ namespace pngsmasher
                 BitShift(rgba_out, rgba_out, options.bufferShiftBits);
             }
 
-            if (options.bufferCorruptRegions > 0)
+            if (options.corruptRegions > 0)
             {
-                RegionalCorrupt(ref rgba_out, options.bufferCorruptRegions, options.regionMinSize, options.regionMaxSize, srand, imgwidth, imgheight);
+                List<Region> regionArray = new List<Region>();
+
+                for (int i = 0; i < options.corruptRegions; i++)
+                {
+                    int start = PFFloor(0, imgwidth * imgheight * 4, srand);
+                    int end = start + PFFloor(imgwidth * 4 * options.regionMinSize, imgwidth * 4 * options.regionMaxSize, srand);
+                    regionArray.Add(new Region(start, end, 0, -10));
+                }
+
+                // to keep compatibility with nodejs png****er's outputs these need to be generated separately
+                for (int i = 0; i < regionArray.Count; i++)
+                {
+                    Region lol = regionArray[i];
+                    lol.BitshiftAmount = -PFFloor(1, 32, srand);
+                    regionArray[i] = lol;
+                }
+
+                RegionalCorrupt(ref rgba_out, regionArray, options.regionMinSize, options.regionMaxSize, imgwidth, imgheight);
             }
 
             if (options.imageSplits > 0)
