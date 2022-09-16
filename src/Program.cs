@@ -31,9 +31,7 @@ namespace pngsmasher
                 options.corruptRegions = 2;
                 /*options.blackBackground = true;
                 options.bufferShiftBits = 0;
-                options.imageSplits = 1;*/
-                options.regionMaxSize = 30;
-                options.regionMinSize = 10;
+                options.imageSplits = 1;
                 options.seed = 2;
                 Console.WriteLine(img.Width);
                 Console.WriteLine(img.Height);

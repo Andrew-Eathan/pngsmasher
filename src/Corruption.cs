@@ -7,6 +7,7 @@ using ImageMagick;
 using pngsmasher;
 using static pngsmasher.Utils;
 using Region = pngsmasher.Utils.Region;
+using Offset = pngsmasher.Utils.Offset;
 
 namespace pngsmasher
 {
@@ -60,6 +61,7 @@ namespace pngsmasher
                 rgba = temp;
             }
         }
+
 
         public static void BitShift(Span<byte> input, Span<byte> output, int direction)
         {
@@ -243,7 +245,19 @@ namespace pngsmasher
 
             if (options.imageSplits > 0)
             {
-                ImageSplitCorrupt(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
+                // the start of the buffer
+                /*var max = width * height * 4;
+                var splitpos = Utils.PFFloor(
+                    max * (float)options.splitsMin / 100f,
+                    max * (float)options.splitsMax / 100f,
+                    srand
+                );
+
+                var bitShiftAmnt = Utils.PFFloor(-40, 40, srand);
+                var shift = Utils.PFFloor(-width, width, srand);*/
+
+                //ImageSplitCorrupt(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
+                ImageSplitCorruptOld(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
             }
 
             // resize to normal after crunching
