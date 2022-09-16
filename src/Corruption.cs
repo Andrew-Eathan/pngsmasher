@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ImageMagick;
 using pngsmasher;
+using static pngsmasher.Utils;
 using Offset = pngsmasher.Utils.Offset;
 
 namespace pngsmasher
@@ -38,7 +39,41 @@ namespace pngsmasher
             }
         }
 
-        public static void ImageSplitCorrupt(ref byte[] rgba, int splits, int splitmin, int splitmax, Types.SeedRand rand, int width, int height)
+        public static void ImageSplitCorrupt(ref byte[] rgba, List<Split> splits, int splitmin, int splitmax, Types.SeedRand rand, int width, int height)
+        {
+            if (splits.Count > 0)
+            {
+                List<byte[]> buffers = new List<byte[]>();
+
+                for (int i = 0; i < splits.Count; i++)
+                {
+                    // the start of the buffer
+                    var splitpos = splits[i].SplitBufferPos;
+
+                    var bitShiftAmnt = splits[i].BitshiftAmount;
+                    var shift = splits[i].HorizontalShift;
+
+                    // to make the image look sliced and shifted midway
+
+                    var sliceClean = rgba[..(splitpos + shift)];
+                    buffers.Add(sliceClean);
+
+                    var sliceShifted = rgba[splitpos..rgba.Length];
+                    BitShift(sliceShifted, sliceShifted, bitShiftAmnt);
+                    buffers.Add(sliceShifted);
+
+                    var combined = Utils.Combine(buffers);
+                    rgba = combined;
+                }
+
+                // pad array in case of a shift that takes away too much data
+                var temp = new byte[width * height * 4];
+                temp.BlitBuffer(rgba, 0);
+                rgba = temp;
+            }
+        }
+
+        public static void ImageSplitCorruptOld(ref byte[] rgba, int splits, int splitmin, int splitmax, Types.SeedRand rand, int width, int height)
         {
             if (splits > 0)
             {
@@ -76,6 +111,7 @@ namespace pngsmasher
                 rgba = temp;
             }
         }
+
 
         public static void BitShift(Span<byte> input, Span<byte> output, int direction)
         {
@@ -242,7 +278,19 @@ namespace pngsmasher
 
             if (options.imageSplits > 0)
             {
-                ImageSplitCorrupt(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
+                // the start of the buffer
+                /*var max = width * height * 4;
+                var splitpos = Utils.PFFloor(
+                    max * (float)options.splitsMin / 100f,
+                    max * (float)options.splitsMax / 100f,
+                    srand
+                );
+
+                var bitShiftAmnt = Utils.PFFloor(-40, 40, srand);
+                var shift = Utils.PFFloor(-width, width, srand);*/
+
+                //ImageSplitCorrupt(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
+                ImageSplitCorruptOld(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
             }
 
             // resize to normal after crunching

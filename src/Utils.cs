@@ -26,6 +26,20 @@ namespace pngsmasher
             }
         }
 
+        public struct Split
+        {
+            public int SplitBufferPos;
+            public int BitshiftAmount;
+            public int HorizontalShift;
+
+            public Split(int SplitBufferPos, int BitshiftAmount, int HorizontalShift)
+            {
+                this.SplitBufferPos = SplitBufferPos;
+                this.BitshiftAmount = BitshiftAmount;
+                this.HorizontalShift = HorizontalShift;
+            }
+        }
+
         public struct Size
         {
             public int Width;
