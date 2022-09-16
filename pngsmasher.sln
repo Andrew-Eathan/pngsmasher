@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32714.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pngsmasher", "src\pngsmasher.csproj", "{2C2E8237-2CD1-4197-A09A-EF557AE1679E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pngsmasher.core", "src\pngsmasher.core.csproj", "{2C2E8237-2CD1-4197-A09A-EF557AE1679E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pngsmasher.tests", "test\pngsmasher.tests.csproj", "{07FBA8F0-2351-4A6A-A57F-4C3E109BE827}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pngsmasher.cli", "pngsmasher.cli\pngsmasher.cli.csproj", "{43207643-BFA3-4A3D-9AFD-9476037F915B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{07FBA8F0-2351-4A6A-A57F-4C3E109BE827}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07FBA8F0-2351-4A6A-A57F-4C3E109BE827}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07FBA8F0-2351-4A6A-A57F-4C3E109BE827}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43207643-BFA3-4A3D-9AFD-9476037F915B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43207643-BFA3-4A3D-9AFD-9476037F915B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43207643-BFA3-4A3D-9AFD-9476037F915B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43207643-BFA3-4A3D-9AFD-9476037F915B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

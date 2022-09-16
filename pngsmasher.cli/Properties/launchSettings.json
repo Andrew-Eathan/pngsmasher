@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "pngsmasher.cli": {
+      "commandName": "Project",
+      "commandLineArgs": "-input eathan.png -splits 2 -regions 2 -rmin -4 -rmax -5 -seed hello"
+    }
+  }
+}

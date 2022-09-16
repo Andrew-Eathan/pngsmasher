@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static pngsmasher.Types;
-using static pngsmasher.Utils;
+using static pngsmasher.Core.Types;
+using static pngsmasher.Core.Utils;
 
 namespace pngsmasher
 {
@@ -40,7 +40,7 @@ namespace pngsmasher
                     BitShift(sliceShifted, sliceShifted, bitShiftAmnt);
                     buffers.Add(sliceShifted);
 
-                    var combined = Utils.Combine(buffers);
+                    var combined = Combine(buffers);
                     rgba = combined;
 
                     buffers.Clear();
@@ -88,7 +88,7 @@ namespace pngsmasher
             }
         }
 
-        public static Size CalculateModifiedWH(int width, int height, Types.PFOptions options)
+        public static Size CalculateModifiedWH(int width, int height, PFOptions options)
         {
             var fmul = options.sizeMul / options.sizeDiv;
 
@@ -171,7 +171,7 @@ namespace pngsmasher
         }
 
         // simulates the behavior of old pngf***er as accurately as it can
-        public static byte[] OldStyleCorruptImage(byte[] rgba, Types.PFOptions options, Types.SeedRand srand, int width, int height)
+        public static byte[] OldStyleCorruptImage(byte[] rgba, PFOptions options, SeedRand srand, int width, int height)
         {
             byte[] rgba_out = rgba.ToArray(); // clone
             int imgwidth = width;
@@ -243,14 +243,14 @@ namespace pngsmasher
                 {
                     // the start of the buffer
                     var max = imgwidth * imgheight * 4;
-                    var splitpos = Utils.PFFloor(
+                    var splitpos = PFFloor(
                         max * (float)options.splitsMin / 100f,
                         max * (float)options.splitsMax / 100f,
                         srand
                     );
 
-                    var bitShiftAmnt = Utils.PFFloor(-40, 40, srand);
-                    var shift = Utils.PFFloor(-imgwidth, imgwidth, srand);
+                    var bitShiftAmnt = PFFloor(-40, 40, srand);
+                    var shift = PFFloor(-imgwidth, imgwidth, srand);
 
                     splits.Add(new Split(splitpos, bitShiftAmnt, shift));
                 }
