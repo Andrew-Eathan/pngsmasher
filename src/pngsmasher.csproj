@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <StartupObject></StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="ILGPU" Version="1.1.0" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="11.1.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
   </ItemGroup>
 
 </Project>

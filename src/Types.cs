@@ -1,13 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace pngsmasher
 {
     public class Types
     {
+        public struct Region
+        {
+            public int Start;
+            public int End;
+            public int BitshiftAmount;
+            public int AddValue;
+
+            public Region(int Start, int End, int BitshiftAmount, int AddValue)
+            {
+                this.Start = Start;
+                this.End = End;
+                this.BitshiftAmount = BitshiftAmount;
+                this.AddValue = AddValue;
+            }
+        }
+
+        public struct Split
+        {
+            public int SplitBufferPos;
+            public int BitshiftAmount;
+            public int HorizontalShift;
+
+            public Split(int SplitBufferPos, int BitshiftAmount, int HorizontalShift)
+            {
+                this.SplitBufferPos = SplitBufferPos;
+                this.BitshiftAmount = BitshiftAmount;
+                this.HorizontalShift = HorizontalShift;
+            }
+        }
+
+        public struct Size
+        {
+            public int Width;
+            public int Height;
+        }
 
         public class PFOptions
         {
@@ -64,7 +95,7 @@ namespace pngsmasher
             double originalSeed;
             double currentSeed;
 
-            public SeedRand (string seed)
+            public SeedRand(string seed)
             {
                 currentSeed = 0xFF;
 
@@ -74,7 +105,7 @@ namespace pngsmasher
                 originalSeed = currentSeed;
             }
 
-            public SeedRand (int seed) => currentSeed = originalSeed = seed;
+            public SeedRand(int seed) => currentSeed = originalSeed = seed;
 
             public double Generate(double min = 0, double max = 1, bool dontShuffleSeed = false)
             {

@@ -1,53 +1,59 @@
-﻿using System;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Memory;
+using System;
 using System.Diagnostics;
-using pngsmasher;
-using ImageMagick;
+using SixLabors.ImageSharp.PixelFormats;
+using System.Buffers;
 
 namespace pngsmasher
 {
     class Program
     {
-        static void log(byte[] test)
-        {
-            foreach (byte b in test)
-            {
-                Console.Write(Convert.ToString(b, 2).PadLeft(8, '0') + " ");
-            }
-            Console.WriteLine();
-        }
-
         static void Main()
         {
-            var settings = new MagickReadSettings();
-            settings.ColorType = ColorType.TrueColorAlpha;
-            Types.SeedRand srand = new Types.SeedRand(2);
+            Stopwatch time = new();
+            time.Start();
 
-            Stopwatch time = new Stopwatch();
+            Types.SeedRand srand = new(2);
 
-            using (var img = new MagickImage("eathan.png", settings))
+            Configuration config = Configuration.Default.Clone();
+            config.PreferContiguousImageBuffers = true;
+
+            using Image<Rgba32> image = Image.Load<Rgba32>("eathan.png");
+
+            if (!image.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory))
+                throw new Exception("Couldn't get a memory handle to raw RGBA, blame imagesharp :(");
+
+            unsafe
             {
-                img.ColorType = ColorType.TrueColorAlpha;
-                Types.PFOptions options = new Types.PFOptions();
-                options.corruptRegions = 2;
-                /*options.blackBackground = true;
-                options.bufferShiftBits = 0;
-                options.imageSplits = 1;
-                options.seed = 2;
-                Console.WriteLine(img.Width);
-                Console.WriteLine(img.Height);
+                using (MemoryHandle pinHandle = memory.Pin())
+                {
+                    byte* ptr = (byte*)pinHandle.Pointer;
+                    byte[] rgba = new byte[image.Width * image.Height * 4];
 
-                var pixels = img.GetPixels();
-                var bytes = pixels.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
+                    fixed (byte* le = rgba) {
+                        Buffer.MemoryCopy(ptr, le, rgba.Length, image.Width * image.Height * 4);
+                    }
 
-                time.Start();
-                bytes = Corruption.OldStyleCorruptImage(bytes, options, srand, img.Width, img.Height);
-                time.Stop();
+                    Types.PFOptions options = new()
+                    {
+                        imageSplits = 6,
+                        crunchPercent = 25
+                    };
 
-                pixels.SetPixels(bytes);
+                    rgba = Corruption.OldStyleCorruptImage(rgba, options, srand, image.Width, image.Height);
 
-                img.Write("out.png");
+                    fixed (byte* le = rgba)
+                    {
+                        Buffer.MemoryCopy(le, ptr, rgba.Length, image.Width * image.Height * 4);
+                    }
+                }
             }
 
+            image.Save("out.png");
+
+            time.Stop();
             Console.WriteLine("Finished in " + time.Elapsed.TotalSeconds + "s (" + time.ElapsedMilliseconds + "ms)");
         }
     }

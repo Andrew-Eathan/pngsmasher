@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ImageMagick;
-using pngsmasher;
+using static pngsmasher.Types;
 using static pngsmasher.Utils;
-using Region = pngsmasher.Utils.Region;
-using Offset = pngsmasher.Utils.Offset;
 
 namespace pngsmasher
 {
     public static class Corruption
     {
-        public static void RegionalCorrupt(ref byte[] rgba, List<Region> regions, int minheight, int maxheight, int width, int height)
+        public static void RegionalCorrupt(ref byte[] rgba, List<Region> regions)
         {
             foreach (Region region in regions)
             {
@@ -23,26 +18,20 @@ namespace pngsmasher
             }
         }
 
-        public static void ImageSplitCorrupt(ref byte[] rgba, int splits, int splitmin, int splitmax, Types.SeedRand rand, int width, int height)
+        public static void ImageSplitCorrupt(ref byte[] rgba, List<Split> splits, int width, int height)
         {
-            if (splits > 0)
+            if (splits.Count > 0)
             {
-                List<byte[]> buffers = new List<byte[]>();
+                List<byte[]> buffers = new();
 
-                for (int i = 0; i < splits; i++)
+                for (int i = 0; i < splits.Count; i++)
                 {
                     // the start of the buffer
-                    var max = width * height * 4;
-                    var splitpos = Utils.PFFloor(
-                        max * (float)splitmin / 100f,
-                        max * (float)splitmax / 100f,
-                        rand
-                    );
+                    var splitpos = splits[i].SplitBufferPos;
+                    var bitShiftAmnt = splits[i].BitshiftAmount;
 
-                    var bitShiftAmnt = Utils.PFFloor(-40, 40, rand);
-                    var shift = Utils.PFFloor(-width, width, rand);
-
-                    // to make the image look sliced and shifted midway
+                    // makes the image look sliced and shifted midway
+                    var shift = splits[i].HorizontalShift;
 
                     var sliceClean = rgba[..(splitpos + shift)];
                     buffers.Add(sliceClean);
@@ -53,15 +42,16 @@ namespace pngsmasher
 
                     var combined = Utils.Combine(buffers);
                     rgba = combined;
+
+                    buffers.Clear();
                 }
 
-                // pad array in case of a shift that takes away too much data
+                // keep array length in case of a shift that takes away/gives too much data
                 var temp = new byte[width * height * 4];
                 temp.BlitBuffer(rgba, 0);
                 rgba = temp;
             }
         }
-
 
         public static void BitShift(Span<byte> input, Span<byte> output, int direction)
         {
@@ -98,11 +88,11 @@ namespace pngsmasher
             }
         }
 
-        public static Utils.Size CalculateModifiedWH(int width, int height, Types.PFOptions options)
+        public static Size CalculateModifiedWH(int width, int height, Types.PFOptions options)
         {
             var fmul = options.sizeMul / options.sizeDiv;
 
-            return new Utils.Size
+            return new Size
             {
                 Width = width * fmul,
                 Height = height * fmul
@@ -112,6 +102,7 @@ namespace pngsmasher
         public static byte[] CrunchImage(byte[] rgba, int srcWidth, int srcHeight, int dstWidth, int dstHeight)
         {
             // jimp source used as reference https://github.com/oliver-moran/jimp/blob/master/packages/plugin-resize/src/modules/resize2.js#L24
+            // this is just nearest-neighbor resizing
 
             byte[] output = new byte[
                 dstWidth * dstHeight * 4
@@ -179,6 +170,7 @@ namespace pngsmasher
                     output[i] = BrightenValue(input[i], val);
         }
 
+        // simulates the behavior of old pngf***er as accurately as it can
         public static byte[] OldStyleCorruptImage(byte[] rgba, Types.PFOptions options, Types.SeedRand srand, int width, int height)
         {
             byte[] rgba_out = rgba.ToArray(); // clone
@@ -188,7 +180,7 @@ namespace pngsmasher
             if (options.sizeMul / options.sizeDiv != 1 || (options.sizeMul != 0 && options.sizeDiv != 0))
             {
                 // image size multiplier and divider
-                Utils.Size calc = CalculateModifiedWH(width, height, options);
+                Size calc = CalculateModifiedWH(width, height, options);
                 rgba_out = CrunchImage(rgba_out, width, height, calc.Width, calc.Height);
             }
 
@@ -223,7 +215,7 @@ namespace pngsmasher
 
             if (options.corruptRegions > 0)
             {
-                List<Region> regionArray = new List<Region>();
+                List<Region> regionArray = new();
 
                 for (int i = 0; i < options.corruptRegions; i++)
                 {
@@ -240,24 +232,30 @@ namespace pngsmasher
                     regionArray[i] = lol;
                 }
 
-                RegionalCorrupt(ref rgba_out, regionArray, options.regionMinSize, options.regionMaxSize, imgwidth, imgheight);
+                RegionalCorrupt(ref rgba_out, regionArray);
             }
 
             if (options.imageSplits > 0)
             {
-                // the start of the buffer
-                /*var max = width * height * 4;
-                var splitpos = Utils.PFFloor(
-                    max * (float)options.splitsMin / 100f,
-                    max * (float)options.splitsMax / 100f,
-                    srand
-                );
+                List<Split> splits = new();
 
-                var bitShiftAmnt = Utils.PFFloor(-40, 40, srand);
-                var shift = Utils.PFFloor(-width, width, srand);*/
+                for (int i = 0; i < options.imageSplits; i++)
+                {
+                    // the start of the buffer
+                    var max = imgwidth * imgheight * 4;
+                    var splitpos = Utils.PFFloor(
+                        max * (float)options.splitsMin / 100f,
+                        max * (float)options.splitsMax / 100f,
+                        srand
+                    );
 
-                //ImageSplitCorrupt(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
-                ImageSplitCorruptOld(ref rgba_out, options.imageSplits, options.splitsMin, options.splitsMax, srand, imgwidth, imgheight);
+                    var bitShiftAmnt = Utils.PFFloor(-40, 40, srand);
+                    var shift = Utils.PFFloor(-imgwidth, imgwidth, srand);
+
+                    splits.Add(new Split(splitpos, bitShiftAmnt, shift));
+                }
+
+                ImageSplitCorrupt(ref rgba_out, splits, imgwidth, imgheight);
             }
 
             // resize to normal after crunching

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 /// <summary>
 /// code credits
@@ -14,42 +12,6 @@ namespace pngsmasher
 {
     public static class Utils
     {
-        public struct Region
-        {
-            public int Start;
-            public int End;
-            public int BitshiftAmount;
-            public int AddValue;
-
-            public Region(int Start, int End, int BitshiftAmount, int AddValue)
-            {
-                this.Start = Start;
-                this.End = End;
-                this.BitshiftAmount = BitshiftAmount;
-                this.AddValue = AddValue;
-            }
-        }
-
-        public struct Split
-        {
-            public int SplitBufferPos;
-            public int BitshiftAmount;
-            public int HorizontalShift;
-
-            public Split(int SplitBufferPos, int BitshiftAmount, int HorizontalShift)
-            {
-                this.SplitBufferPos = SplitBufferPos;
-                this.BitshiftAmount = BitshiftAmount;
-                this.HorizontalShift = HorizontalShift;
-            }
-        }
-
-        public struct Size
-        {
-            public int Width;
-            public int Height;
-        }
-
         public static void BlitBuffer(this byte[] target, byte[] data, int offset, int add = 0)
         {
             for (int i = 0; i < Math.Min(target.Length, data.Length); i++)
