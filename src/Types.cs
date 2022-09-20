@@ -113,9 +113,6 @@ public class Types
         // If the image is transparent, pngfucker tries to localise the corruption to just solid pixels, but allows corruption if its pixel delta > 64
         public bool clamp = false;
 
-        // Export quality (if format is jpg or jpg-based)
-        public int ExportQuality = 100;
-
         // Corruption often mangles alpha bits with other components, resulting in the whole image having a ghost-ish transparency to it. This adds a black background behind the image.
         public bool blackBackground = false;
     }
