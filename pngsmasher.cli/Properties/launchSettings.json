@@ -2,7 +2,7 @@
   "profiles": {
     "pngsmasher.cli": {
       "commandName": "Project",
-      "commandLineArgs": "-input eathan.png -splits 2 -regions 2 -rmin -4 -rmax -5 -blackbg -seed 1"
+      "commandLineArgs": "-input traces -output blob -splits 2 -regions 2 -rmin -4 -rmax -5 -crunch 25 -blackbg -seed 1"
     }
   }
 }

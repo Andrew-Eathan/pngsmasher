@@ -1,6 +1,10 @@
 ﻿using System.Reflection;
 using static pngsmasher.Core.Types;
 using static pngsmasher.Core.Utils;
+using pngsmasher.Core;
+using ImageMagick;
+using System.Diagnostics;
+using ImageMagick.Formats;
 
 namespace pngsmasher.CLI
 {
@@ -40,13 +44,24 @@ namespace pngsmasher.CLI
             }
         }
 
-        static void Main(string[] args) 
+        static void WWarn(object str)
+        {
+            if (!options.silent)
+            {
+                ConsoleColor old = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine(str);
+                Console.ForegroundColor = old;
+            }
+        }
+
+        static void Main(string[] args)
         {
             // parse cli args
 
             PropertyInfo[] @params = options.GetType().GetProperties();
             Dictionary<string, PropertyInfo> vlist = new Dictionary<string, PropertyInfo>();
-            
+
             foreach (PropertyInfo fi in @params)
             {
                 var attr = fi.GetCustomAttribute<CLIValueAttribute>();
@@ -121,11 +136,242 @@ namespace pngsmasher.CLI
                 }
             }
 
-            Console.ForegroundColor = ConsoleColor.DarkMagenta;  Write("   ___    _  __  _____   ____   __  ___   ___    ____   __ __   ____   ___ ");
+            Console.ForegroundColor = ConsoleColor.DarkMagenta; Write("   ___    _  __  _____   ____   __  ___   ___    ____   __ __   ____   ___ ");
             Console.ForegroundColor = ConsoleColor.Magenta; Write("  / _ \\  / |/ / / ___/  / __/  /  |/  /  / _ |  / __/  / // /  / __/  / _ \\");
             Console.ForegroundColor = ConsoleColor.Red; Write(" / ___/ /    / / (_ /  _\\ \\   / /|_/ /  / __ | _\\ \\   / _  /  / _/   / , _/");
             Console.ForegroundColor = ConsoleColor.DarkRed; Write("/_/    /_/|_/  \\___/  /___/  /_/  /_/  /_/ |_|/___/  /_//_/  /___/  /_/|_| ");
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.ForegroundColor = ConsoleColor.Gray; Write("--- by andreweathan --- (and a little help from Marioalexsan)\n");
+
+            List<string> files = new List<string>();
+            if (File.Exists(options.input))
+            {
+                Write(options.input + " is a file");
+                files.Add(options.input);
+            }
+            else if (Directory.Exists(options.input))
+            {
+                Write(options.input + " is a directory");
+                var subfiles = Directory.EnumerateFiles(options.input);
+                files = subfiles.ToList();
+            }
+            else
+            {
+                WError("Couldn't find file " + options.input + "!");
+                return;
+            }
+
+            var timeTotal = new Stopwatch();
+            var settings = new MagickReadSettings();
+
+            settings.ColorType = ColorType.TrueColorAlpha;
+            SeedRand srand = new SeedRand(options.seed);
+
+            Write("Using seed " + options.seed);
+
+            int filesdone = 0;
+
+        timeTotal.Start();
+            foreach (string file in files) {
+                using (var img = new MagickImage(file, settings))
+                {
+                    var timeThis = new Stopwatch();
+                    img.ColorType = ColorType.TrueColorAlpha;
+
+                    var pixels = img.GetPixels();
+                    var bytes = pixels.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
+                    if (bytes == null)
+                    {
+                        WError("Failed to corrupt image " + file + ": Image byte data was null!");
+                        continue;
+                    }
+                    
+                    timeThis.Start();
+                    var (rgba, imgwidth, imgheight) = OldStyleCorruptImage(bytes, options, srand, img.Width, img.Height);
+                    bytes = rgba;
+                    timeThis.Stop();
+
+                    img.Crop(imgwidth, imgheight);
+                    pixels = img.GetPixels();
+                    pixels.SetPixels(bytes);
+                    filesdone++;
+
+                    //Console.WriteLine(Path.GetExtension(output));
+
+                    string output = options.output;
+
+                    if (files.Count > 1)
+                    {
+                        string noext = Path.GetFileNameWithoutExtension(output);
+                        string ext = Path.GetExtension(output);
+
+                        if (ext == "")
+                        {
+                            output = Path.Combine(noext, Path.GetFileName(file));
+                        }
+                        else 
+                        {
+                            output = noext + "_" + filesdone + ext;
+                        }
+                    }
+
+                    if (!options.overwrite)
+                    {
+                        string original = output;
+                        bool ow_warned = false;
+                        int ow_warns = 0;
+                        while (File.Exists(output))
+                        {
+                            ow_warns++;
+
+                            string noext = Path.GetFileNameWithoutExtension(original);
+                            string ext = Path.GetExtension(original);
+                            output = noext + "_" + filesdone + "_" + ow_warns + ext;
+
+                            ow_warned = true;
+                        }
+
+                        if (ow_warned)
+                        {
+                            WWarn("WARN: Output file already exists [" + original + "], writing to [" + output + "] instead!");
+                            WWarn("WARN: To ignore this warning and overwrite the existing file, pass the argument -o");
+                        }
+                    }
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(output));
+                    img.Write(output);
+                    Write(filesdone + ": " + file + " => " + output + " (" + timeThis.ElapsedMilliseconds + " ms)");
+                }
+            }
+        timeTotal.Stop();
+
+            Write("Done! (" + timeTotal.ElapsedMilliseconds + " ms total)");
+        }
+
+        public static (byte[] rgbaout, int imagewidth, int imageheight) OldStyleCorruptImage(byte[] rgba, CLIOptions options, SeedRand srand, int width, int height)
+        {
+            byte[] rgba_out = rgba.ToArray(); // clone
+            int imgwidth = width;
+            int imgheight = height;
+
+            if (options.sizeMul / options.sizeDiv != 1 || (options.sizeMul != 1 && options.sizeDiv != 1))
+            {
+                // image size multiplier and divider
+                Size calc = Corruption.CalculateModifiedWH(width, height, options);
+                rgba_out = Corruption.CrunchImage(rgba_out, width, height, calc.Width, calc.Height);
+                imgwidth = calc.Width;
+                imgheight = calc.Height;
+
+                Write("\tResized image from " + width + "x" + height + " to " + imgwidth + "x" + imgheight);
+            }
+
+            // contrast
+            if (options.contrast != 0)
+            {
+                Corruption.ContrastImage(rgba_out, rgba_out, options.contrast);
+                Write("\tContrasted the image by " + (options.contrast < 0 ? "" : "+") + Convert.ToString(options.contrast));
+            }
+
+            // crunch effect
+            float cwidth = -1;
+            float cheight = -1;
+
+            if (options.crunchPercent != 100 || (options.crunchWidth != 0 && options.crunchHeight != 0))
+            {
+                bool usePercent = options.crunchWidth == 0 && options.crunchHeight == 0;
+                cwidth = usePercent ? width * ((float)options.crunchPercent / 100) : options.crunchWidth;
+                cheight = usePercent ? height * ((float)options.crunchPercent / 100) : options.crunchHeight;
+                if (cwidth < 0) cwidth = width / Math.Abs(cwidth);
+                if (cheight < 0) cheight = height / Math.Abs(cheight);
+
+                Write("\tCrunched the image from " + imgwidth + "x" + imgheight + " to " + (int)cwidth + "x" + (int)cheight);
+
+                imgwidth = (int)cwidth;
+                imgheight = (int)cheight;
+
+                rgba_out = Corruption.CrunchImage(rgba_out, width, height, imgwidth, imgheight);
+            }
+
+            if (options.bufferShiftBits != 0)
+            {
+                Corruption.BitShift(rgba_out, rgba_out, options.bufferShiftBits);
+                Write("\tBitshifted the image " + options.bufferShiftBits + " bits to the " + (options.bufferShiftBits > 0 ? "right" : "left"));
+            }
+
+            if (options.corruptRegions > 0)
+            {
+                List<Region> regionArray = new();
+
+                if (options.regionMinSize < 0)
+                {
+                    options.regionMinSize = imgheight / Math.Abs(options.regionMinSize);
+                    options.regionMaxSize = imgheight / Math.Abs(options.regionMaxSize);
+                }
+
+                for (int i = 0; i < options.corruptRegions; i++)
+                {
+                    int start = PFFloor(0, imgwidth * imgheight * 4, srand);
+                    int end = start + PFFloor(imgwidth * 4 * options.regionMinSize, imgwidth * 4 * options.regionMaxSize, srand);
+                    regionArray.Add(new Region(start, end, 0, -10));
+                }
+
+                // to keep compatibility with nodejs png****er's outputs these need to be generated separately
+                for (int i = 0; i < regionArray.Count; i++)
+                {
+                    Region lol = regionArray[i];
+                    lol.BitshiftAmount = -PFFloor(1, 32, srand);
+                    regionArray[i] = lol;
+                }
+
+                Corruption.RegionalCorrupt(ref rgba_out, regionArray);
+                Write("\tApplied " + options.corruptRegions + " corrupted regions to the image");
+            }
+
+            if (options.imageSplits > 0)
+            {
+                List<Split> splits = new();
+
+                for (int i = 0; i < options.imageSplits; i++)
+                {
+                    // the start of the buffer
+                    var max = imgwidth * imgheight * 4;
+                    var splitpos = PFFloor(
+                        max * (float)options.splitsMin / 100f,
+                        max * (float)options.splitsMax / 100f,
+                    srand
+                    );
+
+                    var bitShiftAmnt = PFFloor(-40, 40, srand);
+                    var shift = PFFloor(-imgwidth, imgwidth, srand);
+
+                    splits.Add(new Split(splitpos, bitShiftAmnt, shift));
+                }
+
+                Corruption.ImageSplitCorrupt(ref rgba_out, splits, imgwidth, imgheight);
+                Write("\tCreated " + options.corruptRegions + " corrupted splits");
+            }
+
+            if (options.clamp)
+            {
+                Corruption.ClampTransparency(rgba_out, rgba_out, rgba);
+                Write("\tClamped image corruption to opaque pixels");
+            }
+
+            if (options.blackBackground)
+            {
+                Corruption.UnderlayBlack(rgba_out, rgba_out);
+                Write("\tUnderlayed a black background");
+            }
+
+            // resize to normal after crunching
+            if (cwidth != -1 && cheight != -1)
+            {
+                rgba_out = Corruption.CrunchImage(rgba_out, imgwidth, imgheight, width, height);
+                imgwidth = width;
+                imgheight = height;
+                Write("\tCrunched image from " + imgwidth + "x" + imgheight + " back to " + width + "x" + height);
+            }
+
+            return (rgba_out, imgwidth, imgheight);
         }
     }
 
@@ -136,6 +382,9 @@ namespace pngsmasher.CLI
 
         [CLIValue("s")]
         public bool silent { get; set; } = false;
+
+        [CLIValue("o")]
+        public bool overwrite { get; set; } = false;
 
         [CLIValue("input")]
         public string input { get; set; } = "input.png";

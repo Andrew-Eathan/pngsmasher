@@ -4,7 +4,7 @@ using System.Linq;
 using static pngsmasher.Core.Types;
 using static pngsmasher.Core.Utils;
 
-namespace pngsmasher
+namespace pngsmasher.Core
 {
     public static class Corruption
     {
@@ -168,6 +168,76 @@ namespace pngsmasher
             for (int i = 0; i < output.Length; i += 4)
                 for (int j = 4; --j > 0;)
                     output[i] = BrightenValue(input[i], val);
+        }
+
+        public static void UnderlayBlack(byte[] input, byte[] output)
+        {
+            for (int i = 0; i < output.Length; i += 4)
+            {
+                float r = input[i];
+                float g = input[i + 1];
+                float b = input[i + 2];
+                float a_div = (float)input[i + 3] / 255;
+
+                r *= a_div;
+                g *= a_div;
+                b *= a_div;
+                a_div = 255;
+
+                output[i] = (byte)r;
+                output[i + 1] = (byte)g;
+                output[i + 2] = (byte)b;
+                output[i + 3] = (byte)a_div;
+            }
+        }
+
+        // got this by accident, looked cool lol
+        public static void UnderlayScanlineBlack(byte[] input, byte[] output)
+        {
+            for (int i = 0; i < output.Length; i += 4)
+            {
+                float r = input[i];
+                float g = input[i + 1];
+                float b = input[i + 2];
+                float a_div = input[i + 3] / 255;
+
+                r *= a_div;
+                g *= a_div;
+                b *= a_div;
+                a_div = 255;
+
+                output[i++] = (byte)r;
+                output[i++] = (byte)g;
+                output[i++] = (byte)b;
+                output[i++] = (byte)a_div;
+            }
+        }
+
+        // Clamps corruption area using the original image as reference
+        public static void ClampTransparency(byte[] input, byte[] output, byte[] original)
+        {
+            for (int i = 0; i < output.Length; i += 4)
+            {
+                float r = input[i];
+                float g = input[i + 1];
+                float b = input[i + 2];
+                float a = input[i + 3];
+
+                float r1 = original[i];
+                float g1 = original[i + 1];
+                float b1 = original[i + 2];
+                float a1 = original[i + 3];
+
+                float delta = (r1 - r + g1 - g + b1 - b) / 3;
+
+                if (a != a1 && delta < 64)
+                {
+                    output[i++] = (byte)r;
+                    output[i++] = (byte)g;
+                    output[i++] = (byte)b;
+                    output[i++] = (byte)a;
+                }
+            }
         }
 
         // simulates the behavior of old pngf***er as accurately as it can
