@@ -237,7 +237,8 @@ namespace pngsmasher.CLI
                         }
                     }
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(output));
+                    string dir = Path.GetDirectoryName(output);
+                    if (dir != "") Directory.CreateDirectory(dir);
                     img.Write(output);
                     Write(filesdone + ": " + file + " => " + output + " (" + timeThis.ElapsedMilliseconds + " ms)");
                 }

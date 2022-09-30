@@ -126,7 +126,7 @@ namespace pngsmasher.Core
             return output;
         }
 
-        private static byte ContrastValue(int input, float factor)
+        private static byte ContrastValue(float input, float factor)
         {
             int value = (int)Math.Floor(factor * (input - 127) + 127);
 
