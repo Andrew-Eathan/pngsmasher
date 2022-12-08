@@ -291,15 +291,12 @@ namespace pngsmasher.CLI
 						}
 					}
 
-					string? dir = Path.GetDirectoryName(output);
-                    if (dir != null && dir.Length > 0) // to make the compiler happy, enough null warnings lol
-						Directory.CreateDirectory(dir);
-
-					img.Write(output);
-					Write(filesdone + ": " + file + " => " + output + " (" + timeThis.ElapsedMilliseconds + " ms)");
-				}
-			}
-			timeTotal.Stop();
+                    Directory.CreateDirectory(Path.GetDirectoryName(output));
+                    img.Write(output);
+                    Write(filesdone + ": " + file + " => " + output + " (" + timeThis.ElapsedMilliseconds + " ms)");
+                }
+            }
+        timeTotal.Stop();
 
 			Write("Done! (" + timeTotal.ElapsedMilliseconds + " ms total)");
 		}

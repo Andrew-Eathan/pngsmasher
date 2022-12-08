@@ -1,3 +1,4 @@
+using pngsmasher.Core;
 namespace pngsmasher.tests;
 
 public class CorruptionTests

@@ -2,7 +2,7 @@
   "profiles": {
     "pngsmasher.cli": {
       "commandName": "Project",
-      "commandLineArgs": "-input apngtest.apng -output output.apng"
+      "commandLineArgs": "-input eathan.png -crunch 50 -contrast 1"
     }
   }
 }
