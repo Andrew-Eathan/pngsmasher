@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\pngsmasher.core.csproj" />
+    <ProjectReference Include="..\pngsmasher.core\pngsmasher.core.csproj" />
   </ItemGroup>
 
 </Project>
