@@ -6,4 +6,7 @@ pngsmasher is currently made out of:
 - pngsmasher.cli, a recreation of the pngf***er command line interface, featuring roughly the same functionality  
   
 i'm kinda lazy, so if you want to see what pngsmasher can do, look at its [predecessor](https://github.com/andrew-eathan/pngfucker), which has a full wiki documenting every argument with examples!  
-pngsmasher isn't complete, as it doesn't support animated corruption at all (unless i decide to work on it again)
+pngsmasher isn't complete, as it doesn't support animated corruption at all, you can thank ImageMagick and the PNG Group for being a confusing mess for that.  
+  
+# setup
+download the latest release build of the pngsmasher CLI and type `pngsmasher.cli -help` to see a list of all the arguments, their descriptions, usage examples, and some full argument examples at the bottom of the list!
