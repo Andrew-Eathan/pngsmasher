@@ -77,7 +77,7 @@ namespace pngsmasher.CLI
 				var attr = fi.GetCustomAttribute<CLIValueAttribute>();
 				var key = attr?.ParameterName ?? fi.Name;
 
-                vlist.Add(key, fi);
+				vlist.Add(key, fi);
 				vlistAssigned.Add(key, false);
 			}
 
@@ -106,8 +106,8 @@ namespace pngsmasher.CLI
 									WWarn("Parameter encountered twice in arguments: -" + paramName);
 								}
 
-                                vlistAssigned[paramName] = true;
-                                vlist[paramName].SetValue(options, true);
+								vlistAssigned[paramName] = true;
+								vlist[paramName].SetValue(options, true);
 								paramName = "";
 							}
 						}
@@ -120,15 +120,15 @@ namespace pngsmasher.CLI
 					Type type = field.PropertyType;
 					object? data = null;
 
-                    if (vlistAssigned[paramName])
-                    {
-                        WWarn("Parameter encountered twice in arguments: -" + paramName);
-                    }
+					if (vlistAssigned[paramName])
+					{
+						WWarn("Parameter encountered twice in arguments: -" + paramName);
+					}
 
-                    vlistAssigned[paramName] = true;
+					vlistAssigned[paramName] = true;
 
-                    // switch case doesn't like the types not being constant ssssooooooooo
-                    if (type == _stringType)
+					// switch case doesn't like the types not being constant ssssooooooooo
+					if (type == _stringType)
 						data = Convert.ToString(arg);
 					else if (type == _intType)
 					{
