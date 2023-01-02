@@ -10,7 +10,6 @@
   <ItemGroup>
 	<PackageReference Include="BigGustave" Version="1.0.6" />
 	<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="12.1.0" />
-	<PackageReference Include="SkiaSharp" Version="2.88.3" />
   </ItemGroup>
 
   <ItemGroup>
