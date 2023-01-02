@@ -1,28 +1,28 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <StartupObject></StartupObject>
+	<OutputType>Library</OutputType>
+	<TargetFramework>net6.0</TargetFramework>
+	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	<StartupObject></StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="pngsmasher.test\**" />
-    <Compile Remove="tests\**" />
-    <EmbeddedResource Remove="pngsmasher.test\**" />
-    <EmbeddedResource Remove="tests\**" />
-    <None Remove="pngsmasher.test\**" />
-    <None Remove="tests\**" />
+	<Compile Remove="pngsmasher.test\**" />
+	<Compile Remove="tests\**" />
+	<EmbeddedResource Remove="pngsmasher.test\**" />
+	<EmbeddedResource Remove="tests\**" />
+	<None Remove="pngsmasher.test\**" />
+	<None Remove="tests\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Corruption - Copy.cs" />
-    <Compile Remove="Program.cs" />
+	<Compile Remove="Corruption - Copy.cs" />
+	<Compile Remove="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ILGPU" Version="1.1.0" />
+	<PackageReference Include="ILGPU" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

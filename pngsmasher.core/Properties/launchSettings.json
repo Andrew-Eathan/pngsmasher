@@ -1,7 +1,7 @@
 {
   "profiles": {
-    "pngsmasher": {
-      "commandName": "Project"
-    }
+	"pngsmasher": {
+	  "commandName": "Project"
+	}
   }
 }
