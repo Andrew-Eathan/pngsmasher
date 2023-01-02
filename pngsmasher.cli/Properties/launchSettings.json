@@ -2,7 +2,7 @@
   "profiles": {
     "pngsmasher.cli": {
       "commandName": "Project",
-      "commandLineArgs": "-input eathan.png -crunch 50 -contrast 1"
+      "commandLineArgs": "pngsmasher.cli -input lucy.png -seed 10 -bg -regions 1 -ntsc -crunch 40 -grayabb -grayabbsize 1 -grayabbdetune 2 -splits 2 -randshift 2 -frames 40 -fps 10 -breaks 40 -fringe 1 -xblur 3 -xblurpower 1 -crwidth 50 -crheight 90"
     }
   }
 }
