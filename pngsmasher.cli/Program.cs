@@ -2,7 +2,6 @@
 using BigGustave;
 using ImageMagick;
 using pngsmasher.Core;
-using SkiaSharp;
 using System;
 using System.Diagnostics;
 using System.Reflection;
