@@ -38,15 +38,22 @@ pngsmasher is currently made out of four projects:
 	basic pngsmasher function tests by Marioalexsan
 
 ## Examples
-default images used in these examples:
-### Image #1: scientist.png
-![scientist.png](https://cdn.discordapp.com/attachments/515580681707847702/1059898949617594459/scientist.png)
-### Image #2: cube.png
-![cube.png](https://camo.githubusercontent.com/88f69e70207dd3530da0d8cc55d014a5a77e896819f9afe035c7524d9922285e/68747470733a2f2f63646e2e646973636f72646170702e636f6d2f6174746163686d656e74732f3833323532323638353832343439393736322f3934363834363632353235333432353138322f637562652e706e67)
-### Image #3: apngtest.png
-![apngtest.png](https://camo.githubusercontent.com/bcd5add23e11374c543cb8122f71216406ed16de7c4b531988c49364e38cabd3/68747470733a2f2f63646e2e646973636f72646170702e636f6d2f6174746163686d656e74732f3833323532323638353832343439393736322f3934363836373933313631373330383637322f61706e67746573742e706e67)
-### Image #4: lucy.png (random pfp)
-<img src="https://cdn.discordapp.com/attachments/515580681707847702/1059928316443889723/lucy.png" style="height: 10rem;">
+### Default images used in the examples below:
+### Image #1: scientist.png  
+
+<img src="https://cdn.discordapp.com/attachments/515580681707847702/1059898949617594459/scientist.png" style="height: 8rem;">  
+
+### Image #2: cube.png  
+
+<img src="https://camo.githubusercontent.com/88f69e70207dd3530da0d8cc55d014a5a77e896819f9afe035c7524d9922285e/68747470733a2f2f63646e2e646973636f72646170702e636f6d2f6174746163686d656e74732f3833323532323638353832343439393736322f3934363834363632353235333432353138322f637562652e706e67" style="height: 8rem;">  
+
+### Image #3: apngtest.png  
+
+<img src="https://camo.githubusercontent.com/bcd5add23e11374c543cb8122f71216406ed16de7c4b531988c49364e38cabd3/68747470733a2f2f63646e2e646973636f72646170702e636f6d2f6174746163686d656e74732f3833323532323638353832343439393736322f3934363836373933313631373330383637322f61706e67746573742e706e67" style="height: 8rem;">  
+
+### Image #4: lucy.png (random pfp)  
+
+<img src="https://cdn.discordapp.com/attachments/515580681707847702/1059928316443889723/lucy.png" style="height: 8rem;">  
 
 #
 #
