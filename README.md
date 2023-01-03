@@ -15,7 +15,7 @@ for reference, running the animated cube example takes ~500ms for 100 frames for
 pngsmasher only exclusively supports the PNG and APNG formats, because i haven't found decent image processing libraries for C# that were both fast and low-sized (looking at you, ImageMagick.NET, with your 35 mb dlls, lol)
 
 ## Why would i want this?
-have you gotten tired of seeing this generic [JPEG glitch effect](https://cdn.discordapp.com/attachments/701973402973634681/916383906243178496/glitch.jpeg) that everyone uses, and you wanted something else? then pngsmasher is for you!
+have you gotten tired of seeing this generic [JPEG glitch effect](https://cdn.discordapp.com/attachments/701973402973634681/916383906243178496/glitch.jpeg) that everyone uses, and you want something new? then pngsmasher is for you!
 
 ## Setup
 download the [latest release](https://github.com/andrew-eathan/pngsmasher/releases) (pick whatever released binary fits your system) and try running some of the examples below in the README!
