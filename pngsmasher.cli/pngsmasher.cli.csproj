@@ -3,18 +3,29 @@
   <PropertyGroup>
 	<OutputType>Exe</OutputType>
 	<TargetFramework>net6.0</TargetFramework>
+	<PublishSingleFile>true</PublishSingleFile>
+	<PublishReadyToRun>true</PublishReadyToRun>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
 	<PackageReference Include="BigGustave" Version="1.0.6" />
-	<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="12.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-	<ProjectReference Include="..\APNGLib\APNGLib.csproj" />
-	<ProjectReference Include="..\pngsmasher.core\pngsmasher.core.csproj" />
+	<ProjectReference Include="..\APNGLib\APNGLib.csproj">
+	  <Private>True</Private>
+	  <EmbedInteropTypes>False</EmbedInteropTypes>
+	  <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
+	  <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
+	</ProjectReference>
+	<ProjectReference Include="..\pngsmasher.core\pngsmasher.core.csproj">
+	  <Private>True</Private>
+	  <EmbedInteropTypes>False</EmbedInteropTypes>
+	  <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
+	  <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
+	</ProjectReference>
   </ItemGroup>
 
 </Project>

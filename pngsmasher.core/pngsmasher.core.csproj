@@ -21,8 +21,4 @@
 	<Compile Remove="Program.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-	<PackageReference Include="ILGPU" Version="1.1.0" />
-  </ItemGroup>
-
 </Project>

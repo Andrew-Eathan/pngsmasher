@@ -199,7 +199,7 @@ public class Types
         public int crunchHeight { get; set; } = 0;
 
         // Seed to use when corrupting this image
-        [CLIValue("seed", "Random seed for this image. Leave blank", "-seed 69420")]
+        [CLIValue("seed", "Random seed for this image. Leave blank to generate a random seed between 1 and 2147483647.", "-seed 69420")]
         public int seed { get; set; } = -2147483647; // this is set to something random if unspecified
 
         // If the image is transparent, pngsmasher tries to localise the corruption to just solid pixels, but allows corruption if its pixel delta > 64

@@ -1,6 +1,5 @@
 ﻿using APNGLib;
 using BigGustave;
-using ImageMagick;
 using pngsmasher.Core;
 using System;
 using System.Diagnostics;
@@ -8,7 +7,6 @@ using System.Reflection;
 using static pngsmasher.Core.Types;
 using static pngsmasher.Core.Utils;
 using static pngsmasher.Core.Corruption;
-using ColorType = ImageMagick.ColorType;
 using Pixel = BigGustave.Pixel;
 
 namespace pngsmasher.CLI
@@ -63,7 +61,7 @@ namespace pngsmasher.CLI
             }
         }
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             logging = new Logging(VerbWrite, Write, WWarn, WError);
 
@@ -168,6 +166,12 @@ namespace pngsmasher.CLI
             Console.ForegroundColor = ConsoleColor.DarkRed;		Write(@"/_/    /_/|_/  \___/  /___/  /_/  /_/  /_/ |_|/___/  /_//_/  /___/  /_/|_| ");
             Console.ForegroundColor = ConsoleColor.Gray;		Write("--- by andreweathan --- (and a little help from Marioalexsan)\n");
 
+            if (args.Length == 0)
+                options.showHelp = true;
+
+            if (options.seed == -2147483647)
+                options.seed = new Random().Next(1, 2147483647);
+
             if (options.seed <= 0)
             {
                 int old = options.seed;
@@ -222,7 +226,7 @@ namespace pngsmasher.CLI
                 Write("\tpngsmasher.cli -input someball.png -splits 4 -splitmin 50 -crunch 60 -seed 25 -frames 60 -fps 10\n");
 
                 Console.ForegroundColor = ConsoleColor.Gray;
-                return;
+                return 0;
             }
 
             List<string> files = new List<string>();
@@ -240,12 +244,10 @@ namespace pngsmasher.CLI
             else
             {
                 WError("Couldn't find file " + options.input + "!");
-                return;
+                return -1;
             }
 
             var timeTotal = new Stopwatch();
-            var settings = new MagickReadSettings();
-            settings.ColorType = ColorType.TrueColorAlpha;
 
             if (options.seed == -2147483647)
                 options.seed = new Random().Next(-2147483646, 2147483647);
@@ -255,6 +257,7 @@ namespace pngsmasher.CLI
             Write("Using seed " + options.seed);
 
             int filesdone = 0;
+            bool didAnything = false;
 
             timeTotal.Start();
             foreach (string file in files)
@@ -314,7 +317,6 @@ namespace pngsmasher.CLI
                     }
                 }
 
-                bool useMagick = false;
                 APNG png = new APNG();
                 try
                 {
@@ -323,36 +325,32 @@ namespace pngsmasher.CLI
                 }
                 catch (Exception e)
                 {
-                    useMagick = true;
-                    VerbWrite("Couldn't open " + options.input + " as APNG, will try with Magick - " + e.Message);
+                    WError("Couldn't open " + options.input + " as a PNG! The file could be corrupted.");
+                    WError("NOTE: pngsmasher only supports PNGs and APNGs. ImageMagick fattens up the executable by a whopping 35 megabytes, so i removed it, dropping support for everything except PNG.");
+                    if (options.verbose) WError("Exception message: " + e.Message);
                 }
 
-                if (!useMagick)
+                if (png.FrameCount < 1)
                 {
-                    if (png.FrameCount < 1)
+                    VerbWrite(options.input + " is not an APNG, just a PNG.");
+
+                    if (options.frames > 1)
                     {
-                        VerbWrite(options.input + " is not an APNG, just a PNG.");
+                        VerbWrite("Corrupting as an APNG.");
 
-                        if (options.frames > 1)
+                        List<byte[]> data = new List<byte[]>();
+                        byte[] fdata = File.ReadAllBytes(options.input);
+
+                        for (int i = 0; i < options.frames; i++)
                         {
-                            useMagick = false;
-                            VerbWrite("Corrupting as an APNG.");
-
-                            List<byte[]> data = new List<byte[]>();
-                            byte[] fdata = File.ReadAllBytes(options.input);
-
-                            for (int i = 0; i < options.frames; i++)
-                            {
-                                data.Add(fdata);
-                            }
-
-                            png = APNGAssembler.AssembleAPNG(data, 1, (ushort)options.fps, true);
+                            data.Add(fdata);
                         }
-                        else
-                        {
-                            useMagick = true;
-                            VerbWrite("Using Magick.");
-                        }
+
+                        png = APNGAssembler.AssembleAPNG(data, 1, (ushort)options.fps, true);
+                    }
+                    else
+                    {
+                        VerbWrite("Using Magick.");
                     }
                 }
 
@@ -362,45 +360,21 @@ namespace pngsmasher.CLI
                 var timeAll = new Stopwatch();
 
                 timeAll.Start();
-                    long result = useMagick ? MagickCorrupt(file, output, settings, srand) : APNGCorrupt(png, output, srand);
+                    long result = APNGCorrupt(png, output, srand);
                 timeAll.Stop();
 
                 if (result == -1) continue;
+                else didAnything = true;
 
                 Write("Finished " + file + " => " + output + " (" + result + " ms corruption, " + (timeAll.ElapsedMilliseconds - result) + " ms i/o)");
             }
         timeTotal.Stop();
 
             Write("Done! (" + timeTotal.ElapsedMilliseconds + " ms total)");
-        }
 
-        // returns time taken to corrupt (i/o time is ignored)
-        public static long MagickCorrupt(string file, string output, MagickReadSettings settings, SeedRand srand)
-        {
-            var timeThis = new Stopwatch();
-            using var img = new MagickImage(file, settings);
-            img.ColorType = ColorType.TrueColorAlpha;
-
-            var pixels = img.GetPixels();
-            var bytes = pixels.ToByteArray(0, 0, img.Width, img.Height, PixelMapping.RGBA);
-            if (bytes == null)
-            {
-                WError("Failed to corrupt image " + file + ": Image byte data was null!");
-                return -1;
-            }
-
-            timeThis.Start();
-            var (rgba, imgwidth, imgheight, _) = OldStyleCorruptImage(bytes, options, srand, img.Width, img.Height, true, logging);
-            bytes = rgba;
-            timeThis.Stop();
-
-            img.Crop(imgwidth, imgheight);
-            pixels = img.GetPixels();
-            pixels.SetPixels(bytes);
-
-            img.Write(output);
-
-            return timeThis.ElapsedMilliseconds;
+            if (!didAnything)
+                return -2;
+            return 0;
         }
 
         // returns time taken to corrupt (i/o time is ignored)
