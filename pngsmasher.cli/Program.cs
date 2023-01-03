@@ -84,9 +84,10 @@ namespace pngsmasher.CLI
             for (int i = 0; i < args.Length; i++)
             {
                 string arg = args[i];
+
                 if (paramName == "")
                 {
-                    if (arg[0] == '-')
+                    if (arg[0] == '-' || arg[0] == '+')
                     {
                         paramName = arg[1..];
 
@@ -101,11 +102,13 @@ namespace pngsmasher.CLI
                             {
                                 if (vlistAssigned[paramName])
                                 {
-                                    WWarn("Parameter encountered twice in arguments: -" + paramName);
+                                    WWarn("Parameter encountered twice in arguments: " + arg[0] + paramName);
                                 }
 
+                                vlist[paramName].SetValue(options, arg[0] == '+');
                                 vlistAssigned[paramName] = true;
-                                vlist[paramName].SetValue(options, true);
+
+                                VerbWrite("Boolean " + arg[0] + paramName + " toggled " + (arg[0] == '+' ? "on" : "off"));
                                 paramName = "";
                             }
                         }
@@ -139,6 +142,7 @@ namespace pngsmasher.CLI
                         else
                         {
                             data = data_sub;
+                            VerbWrite("Int -" + paramName + " set to " + data);
                         }
                     }
                     else if (type == _floatType)
@@ -152,6 +156,7 @@ namespace pngsmasher.CLI
                         else
                         {
                             data = data_sub;
+                            VerbWrite("Float -" + paramName + " set to " + data);
                         }
                     }
 
@@ -336,7 +341,7 @@ namespace pngsmasher.CLI
 
                     if (options.frames > 1)
                     {
-                        VerbWrite("Corrupting as an APNG.");
+                        VerbWrite("Corrupting as an APNG, options.frames is bigger than 1.");
 
                         List<byte[]> data = new List<byte[]>();
                         byte[] fdata = File.ReadAllBytes(options.input);
@@ -348,10 +353,6 @@ namespace pngsmasher.CLI
 
                         png = APNGAssembler.AssembleAPNG(data, 1, (ushort)options.fps, true);
                     }
-                    else
-                    {
-                        VerbWrite("Using Magick.");
-                    }
                 }
 
                 filesdone++;
@@ -360,7 +361,7 @@ namespace pngsmasher.CLI
                 var timeAll = new Stopwatch();
 
                 timeAll.Start();
-                    long result = APNGCorrupt(png, output, srand);
+                    long result = png.FrameCount < 1 ? PNGCorrupt(options.input, output, srand) : APNGCorrupt(png, output, srand);
                 timeAll.Stop();
 
                 if (result == -1) continue;
@@ -375,6 +376,60 @@ namespace pngsmasher.CLI
             if (!didAnything)
                 return -2;
             return 0;
+        }
+
+        // returns time taken to corrupt (i/o time is ignored)
+        public static long PNGCorrupt(string filePath, string output, SeedRand srand)
+        {
+            long time = 0;
+
+            // kinda ugly
+
+            Png file = Png.Open(filePath);
+            byte[] bytes = new byte[file.Width * file.Height * 4];
+
+            for (int y = 0; y < file.Height; y++)
+            {
+                for (int x = 0; x < file.Width; x++)
+                {
+                    Pixel pix = file.GetPixel(x, y);
+
+                    int idx = (x + y * (int)file.Width) * 4;
+                    bytes[idx++] = pix.R;
+                    bytes[idx++] = pix.G;
+                    bytes[idx++] = pix.B;
+                    bytes[idx++] = pix.A;
+                }
+            }
+
+            var timeThis = new Stopwatch();
+            timeThis.Start();
+            (byte[] rgba, int imgwidth, int imgheight, bool tookABreak) = OldStyleCorruptImage(bytes, options, srand, file.Width, file.Height, options.verbose, logging);
+            bytes = rgba;
+            timeThis.Stop();
+            time += timeThis.ElapsedMilliseconds;
+
+            var builder = PngBuilder.Create(imgwidth, imgheight, true);
+            for (int j = 0; j < bytes.Length; j += 4)
+            {
+                int x = (j / 4) % imgwidth;
+                int y = (j / 4) / imgwidth;
+
+                builder.SetPixel(
+                    new Pixel(
+                        bytes[j],
+                        bytes[j + 1],
+                        bytes[j + 2],
+                        bytes[j + 3],
+                        false
+                    ), x, y
+                );
+            }
+
+            var data = builder.Save(new PngBuilder.SaveOptions() { AttemptCompression = true });
+            File.WriteAllBytes(output, data);
+
+            return time;
         }
 
         // returns time taken to corrupt (i/o time is ignored)
@@ -441,8 +496,6 @@ namespace pngsmasher.CLI
                         ), x, y
                     );
                 }
-
-                builder.SetPixel((byte)srand.Generate(0, 255), (byte)srand.Generate(0, 255), (byte)srand.Generate(0, 255), 2, 2);
 
                 var data = builder.Save(new PngBuilder.SaveOptions() { AttemptCompression = true });
                 frames.Add(data);

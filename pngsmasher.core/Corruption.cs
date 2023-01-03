@@ -26,9 +26,11 @@ namespace pngsmasher.Core
 
                 for (int i = 0; i < splits.Count; i++)
                 {
-                    // the start of the buffer
-                    var splitpos = splits[i].SplitBufferPos;
+                    // the start of the buffer, take care not to run into max buffer length due to the shrinking caused by splitting
+                    var splitpos = Math.Min(splits[i].SplitBufferPos, rgba.Length);
                     var bitShiftAmnt = splits[i].BitshiftAmount;
+
+                    if (splitpos == rgba.Length) continue;
 
                     // makes the image look sliced and shifted midway
                     var shift = splits[i].HorizontalShift;
@@ -232,28 +234,39 @@ namespace pngsmasher.Core
         }*/
 
         // Clamps corrupted areas using the original uncorrupted image as reference for what's opaque and what's not
-        public static void ClampTransparency(byte[] input, byte[] output, byte[] original)
+        public static void ClampTransparency(byte[] input, byte[] output, byte[] original, int inputWidth, int inputHeight, int originalWidth, int originalHeight)
         {
-            for (int i = 0; i < output.Length; i += 4)
+            if (output.Length != input.Length)
+                throw new ArgumentException("Output byte array length is not equal to input");
+
+            for (int y = 0; y < inputHeight; y++)
             {
-                float r = input[i];
-                float g = input[i + 1];
-                float b = input[i + 2];
-                float a = input[i + 3];
-
-                float r1 = original[i];
-                float g1 = original[i + 1];
-                float b1 = original[i + 2];
-                float a1 = original[i + 3];
-
-                float delta = (r1 - r + g1 - g + b1 - b) / 3;
-
-                if (a != a1 && delta < 64)
+                for (int x = 0; x < inputWidth; x++)
                 {
-                    output[i++] = (byte)r;
-                    output[i++] = (byte)g;
-                    output[i++] = (byte)b;
-                    output[i++] = (byte)a;
+                    float wRatio = originalWidth / (float)inputWidth;
+                    float hRatio = originalHeight / (float)inputHeight;
+                    int inputIdx = (x + y * inputWidth) * 4;
+                    int originalIdx = (int)(x * wRatio + y * hRatio * originalWidth) * 4;
+
+                    float r = input[inputIdx];
+                    float g = input[inputIdx + 1];
+                    float b = input[inputIdx + 2];
+                    float a = input[inputIdx + 3];
+
+                    float r1 = original[originalIdx];
+                    float g1 = original[originalIdx + 1];
+                    float b1 = original[originalIdx + 2];
+                    float a1 = original[originalIdx + 3];
+
+                    float delta = (r1 - r + g1 - g + b1 - b) / 3;
+
+                    if (a != a1 && delta < 64)
+                    {
+                        output[inputIdx++] = (byte)r;
+                        output[inputIdx++] = (byte)g;
+                        output[inputIdx++] = (byte)b;
+                        output[inputIdx++] = (byte)a;
+                    }
                 }
             }
         }
@@ -370,6 +383,7 @@ namespace pngsmasher.Core
             return output;
         }
 
+
         public static (byte[] rgbaout, int imagewidth, int imageheight, bool tookABreak) OldStyleCorruptImage(byte[] rgba, CLIOptions options, SeedRand srand, int width, int height, bool log, Logging logging)
         {
             byte[] rgba_out = rgba.ToArray(); // clone
@@ -389,16 +403,7 @@ namespace pngsmasher.Core
             int imgwidth = width;
             int imgheight = height;
 
-            // broken :)
-            // future me: for some reason this only breaks when used with -crunch
-            // i checked and imgwidth/imgheight are ok and the output buffers seem to be correct length
-            // so something is getting messed up, probably by crunch
-            // the output image size is the correct expected one, but the output image data is super crushed down for whatever reason
-            // maybe widths/heights are messed in some call? im too lazy to fix this rn
-
-            if (options.sizeMul / options.sizeDiv != 1 && (options.crunchPercent != 100 || (options.crunchWidth != 0 && options.crunchHeight != 0)))
-                logging.WWarn("-mul and/or -div together with -crunch causes images to break for some reason. Ignoring -mul and/or -div. You could change the image size yourself or PR a fix if you want!");
-            else if (options.sizeMul / options.sizeDiv != 1)
+            if (options.sizeMul / options.sizeDiv != 1)
             {
                 // image size multiplier and divider
                 Size calc = CalculateModifiedWH(width, height, options.sizeMul, options.sizeDiv);
@@ -433,10 +438,10 @@ namespace pngsmasher.Core
                 if (log)
                     logging.Write("\tCrunched the image from " + imgwidth + "x" + imgheight + " to " + (int)cwidth + "x" + (int)cheight, false);
 
+                rgba_out = CrunchImage(rgba_out, imgwidth, imgheight, (int)cwidth, (int)cheight);
+
                 imgwidth = (int)cwidth;
                 imgheight = (int)cheight;
-
-                rgba_out = CrunchImage(rgba_out, width, height, imgwidth, imgheight);
             }
 
             // apply buffer bitshift corruption effect
@@ -512,7 +517,9 @@ namespace pngsmasher.Core
             // image clamp aux effect
             if (applyAuxFX && options.clamp)
             {
-                ClampTransparency(rgba_out, rgba_out, rgba);
+                Size calc = CalculateModifiedWH(width, height, options.sizeMul, options.sizeDiv);
+                ClampTransparency(rgba_out, rgba_out, rgba, imgwidth, imgheight, calc.Width, calc.Height);
+
                 if (log)
                     logging.Write("\tClamped image corruption to opaque pixels", false);
             }
@@ -521,6 +528,7 @@ namespace pngsmasher.Core
             if (applyAuxFX && options.bg)
             {
                 UnderlayBackground(rgba_out, rgba_out, (byte)options.bgRed, (byte)options.bgGreen, (byte)options.bgBlue, options.bgClamp ? rgba_out : null);
+
                 if (log)
                     logging.Write("\tUnderlayed a background in the image", false);
             }
