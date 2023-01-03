@@ -68,11 +68,11 @@ image crunching & contrasting is also applied (-1 to +1 range)
 
 ![output.png](https://cdn.discordapp.com/attachments/515580681707847702/1059910763529121812/output.png)
 
-### Example #3: `pngsmasher.cli -input cube.png -output outputcube.png -splits 3 -randshift 1 -regions 1 -rmin -5 -rmax -3 -breaks 20 -crwidth 50 -crheight 90 -frames 60 -fps 15 -seed 2089938189 -ntsc -fringe 1 -xblur 4 -bgred 8 -bggreen 0 -bgblue 16 +bg`
+### Example #3: `pngsmasher.cli -input cube.png -output outputcube.png -splits 3 -randshift 1 -regions 1 -rmin -5 -rmax -3 -breaks 20 -crwidth 50 -crheight 90 -frames 60 -fps 15 -seed 2089938189 +ntsc -fringe 1 -xblur 4 -bgred 8 -bggreen 0 -bgblue 16 +bg`
 has NTSC, a black background, and instead of being crushed to a percentage, this image is crushed to a specific width and height, corrupted, and returned back to its default size
 the seed is random number keyboard mash
 
-![outputcube.png](https://cdn.discordapp.com/attachments/515580681707847702/1059910198015307836/outputcube.png)
+![outputcube.png](https://cdn.discordapp.com/attachments/515580681707847702/1059940282566717580/outputcube_0_1.png)
 
 ### Example #4: `pngsmasher.cli -input apngtest.png -seed 4 -regions 3 -splits 2 -crunch 70 +ntsc -fringe 5 -xblur 8 -xblurpower 1 +bg +bgred 64 +bggreen 0 +bgblue 128`
 
