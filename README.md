@@ -55,7 +55,12 @@ pngsmasher is currently made out of four projects:
 
 <img src="https://cdn.discordapp.com/attachments/515580681707847702/1059928316443889723/lucy.png" style="height: 8rem;">  
 
-the original png/apng input files:  
+### Image #5: cioss.png
+
+<img src="https://github.com/Andrew-Eathan/pngsmasher/assets/42521608/ec923ad4-f757-4ee8-b636-eff027f60f83" style="height: 8rem;">
+
+
+the original png/apng input files: (except cioss.png)  
 [originals.zip](https://github.com/Andrew-Eathan/pngsmasher/files/11472442/originals.zip)
 
 #
@@ -105,6 +110,10 @@ same as #6, just no animation (no -frames and -fps)
 same as example #7, without the NTSC effect
 
 ![output.png](https://cdn.discordapp.com/attachments/515580681707847702/1059925984448622643/output.png)
+
+### Example #9: `pngsmasher.cli -input cioss.png -frames 40 -fps 10 -breaks 45 -regions 0 -rmin -13 -rmax -8 -seed 2 -splits 8 +bg +ntsc +grayabb +grayabbsize 5 +grayabbdetune 2 -fringe 2 -shift 7 -contrast 0.3 -mul 2`
+
+![output_0_120](https://github.com/Andrew-Eathan/pngsmasher/assets/42521608/68f0c38d-10f9-42d6-865c-3df5e571b979)
 
 #
 
