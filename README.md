@@ -1,7 +1,7 @@
-<img style="height: 5rem;image-rendering: pixelated;" src="https://cdn.discordapp.com/attachments/515580681707847702/1059887593359155331/outputcube.png"> <img style="max-height: 5.5rem;" src="https://cdn.discordapp.com/attachments/515580681707847702/1059887592293810256/output.png">
+<img style="height: 5rem;image-rendering: pixelated;" src="https://cdn.discordapp.com/attachments/848562143120850944/1107344010726609026/pngsmasher_icon.gif"> <img style="max-height: 5.5rem;" src="https://cdn.discordapp.com/attachments/848562143120850944/1107344010349129928/pngsmasher_logo.gif">
+
 # pngsmasher v2.1
-(note that if your browser doesn't support APNGs, you'll see all animated pngsmasher examples as a single-frame static image)
-(if this applies to you, get with the times and get a browser that supports apng lol)
+(unfortunately, because github decided for absolutely no reason to break all APNGs, you'll have to press the download links under animated images instead of downloading the animated images, since those are apngs converted to gifs)
 
 ## What is this?
 pngsmasher is my unique take on making an image glitching tool!
@@ -45,15 +45,18 @@ pngsmasher is currently made out of four projects:
 
 ### Image #2: cube.png  
 
-<img src="https://camo.githubusercontent.com/88f69e70207dd3530da0d8cc55d014a5a77e896819f9afe035c7524d9922285e/68747470733a2f2f63646e2e646973636f72646170702e636f6d2f6174746163686d656e74732f3833323532323638353832343439393736322f3934363834363632353235333432353138322f637562652e706e67" style="height: 8rem;">  
+<img src="https://cdn.discordapp.com/attachments/848562143120850944/1107347423812128868/cube.gif" style="height: 8rem;">  
 
 ### Image #3: apngtest.png  
 
-<img src="https://camo.githubusercontent.com/bcd5add23e11374c543cb8122f71216406ed16de7c4b531988c49364e38cabd3/68747470733a2f2f63646e2e646973636f72646170702e636f6d2f6174746163686d656e74732f3833323532323638353832343439393736322f3934363836373933313631373330383637322f61706e67746573742e706e67" style="height: 8rem;">  
+<img src="https://cdn.discordapp.com/attachments/848562143120850944/1107348282847539200/apngtest.gif" style="height: 8rem;">  
 
 ### Image #4: lucy.png (random pfp)  
 
 <img src="https://cdn.discordapp.com/attachments/515580681707847702/1059928316443889723/lucy.png" style="height: 8rem;">  
+
+the original png/apng input files:  
+[originals.zip](https://github.com/Andrew-Eathan/pngsmasher/files/11472442/originals.zip)
 
 #
 #
@@ -79,19 +82,19 @@ image crunching & contrasting is also applied (-1 to +1 range)
 has NTSC, a black background, and instead of being crushed to a percentage, this image is crushed to a specific width and height, corrupted, and returned back to its default size
 the seed is random number keyboard mash
 
-![outputcube.png](https://cdn.discordapp.com/attachments/515580681707847702/1059940282566717580/outputcube_0_1.png)
+![outputcube.png](https://cdn.discordapp.com/attachments/848562143120850944/1107348789234253965/outputcube.gif)
 
 ### Example #4: `pngsmasher.cli -input apngtest.png -seed 4 -regions 3 -splits 2 -crunch 70 +ntsc -fringe 5 -xblur 8 -xblurpower 1 +bg +bgred 64 +bggreen 0 +bgblue 128`
 
-![output.png](https://cdn.discordapp.com/attachments/515580681707847702/1059914083786301490/output.png)
+![output.png](https://cdn.discordapp.com/attachments/848562143120850944/1107349195037360230/output.gif)
 
 ### Example #5: `pngsmasher.cli -input apngtest.png -seed 10 -regions 1 -crunch 20 +grayabb -grayabbsize 2 -grayabbdetune 1 -splits 2 -randshift 2 +ntsc -fringe 1 -xblur 3 -crwidth 50 -crheight 90 +bg +o -div 2 +bg -bgclamp +clamp`
-![output.png](https://cdn.discordapp.com/attachments/515580681707847702/1059922100627980378/output.png)
+![output.png](https://cdn.discordapp.com/attachments/848562143120850944/1107349441863766176/output.gif)
 
 ### Example #6: `pngsmasher.cli -input lucy.png -output lucy_pngsmashed.png -seed 10 -regions 1 -crunch 20 +grayabb -grayabbsize 2 -grayabbdetune 1 -splits 2 -randshift 2 -frames 40 -fps 10 -breaks 40 +ntsc -xblur 3 -crwidth 50 -crheight 90 +bg +o -div 2 +bg -bgclamp`
 this "grayscale chroma abberation" effect was an accident that turned out to look pretty cool, so i kept it in
 
-![lucy_pngsmashed.png](https://cdn.discordapp.com/attachments/515580681707847702/1059925145168392363/output.png)
+![lucy_pngsmashed.png](https://cdn.discordapp.com/attachments/848562143120850944/1107349702896259103/lucy_pngsmashed.gif)
 
 ### Example #7: `pngsmasher.cli -input lucy.png -seed 10 -regions 1 -crunch 20 +grayabb -grayabbsize 2 -grayabbdetune 1 -splits 2 -randshift 2 -breaks 40 +ntsc -fringe 1 -xblur 3 -crwidth 50 -crheight 90 +bg +o -div 2 +bg -bgclamp`
 same as #6, just no animation (no -frames and -fps)
@@ -105,4 +108,9 @@ same as example #7, without the NTSC effect
 
 #
 
-originally, there should have been more animated examples, but while making these examples i found out a couple of bugs, and while i did fix all of them, `+clamp` doesn't work for some reason, so examples with it will come later!
+originally, there should have been more animated examples, but while making these examples i found out a couple of bugs, and while i did fix all of them, `+clamp` doesn't work for some reason  
+anyway, here are the options used for the pngsmasher logo:  
+
+pslogo.png:  
+![pslogo](https://github.com/Andrew-Eathan/pngsmasher/assets/42521608/18d937ec-104f-45c9-b493-07775a20987a)  
+`pngsmasher.cli -input pslogo.png -output pngsmasher_logo.png -splits 6 -regions 2 -splitmin 20 -crunch 80 -seed 10 -frames 30 -fps 10 +grayabb -grayabbwidth 2 -grayabbpower 0.75 +bg -bgred 0 -bggreen 0 -bgblue 0 +ntsc -fringe 1 -breaks 30`
