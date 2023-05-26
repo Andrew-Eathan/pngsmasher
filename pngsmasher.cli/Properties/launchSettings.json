@@ -2,7 +2,7 @@
   "profiles": {
     "pngsmasher.cli": {
       "commandName": "Project",
-      "commandLineArgs": "pngsmasher.cli -input apngtest.png -seed 10 -regions 1 -crunch 20 +grayabb -grayabbsize 2 -grayabbdetune 1 -splits 2 -randshift 2 +ntsc -fringe 1 -xblur 3 -crwidth 50 -crheight 90 +bg +o -div 2 +bg -bgclamp +clamp"
+      "commandLineArgs": "pngsmasher.cli -input lucy.png -crunch 60 -splits 3 -rewidths 4 +grayabb"
     }
   }
 }

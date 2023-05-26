@@ -71,6 +71,15 @@ public class Types
         public int Height;
     }
 
+    public enum ColorSpace
+    {
+        RGBA1616168,
+        RGB888,
+        RGB161616,
+        RG88,
+        RB1616
+    }
+
     public class SeedRand
     {
         double originalSeed;
@@ -106,16 +115,16 @@ public class Types
 
     public class CLIOptions
     {
-        [CLIValue("help", "Shows this help!", "-help")]
+        [CLIValue("help", "Shows this help!", "+help")]
         public bool showHelp { get; set; } = false;
 
-        [CLIValue("v", "Shows more helpful logs!", "-v")]
+        [CLIValue("v", "Shows more helpful logs!", "+v")]
         public bool verbose { get; set; } = false;
 
-        [CLIValue("s", "Runs completely silent. Shows absolutely nothing in console!", "-s")]
+        [CLIValue("s", "Runs completely silent. Shows absolutely nothing in console!", "+s")]
         public bool silent { get; set; } = false;
 
-        [CLIValue("o", "Overwrites output image if one already exists with the given name.", "-o")]
+        [CLIValue("o", "Overwrites output image if one already exists with the given name.", "+o")]
         public bool overwrite { get; set; } = false;
 
         [CLIValue("input", "Input path. Can be any image file or a folder of images!", "-input shark.png | -input folderofsharks")]
@@ -145,11 +154,11 @@ public class Types
         public int fps { get; set; } = -1;
 
         // Makes it so that the fps is default when "taking a break" (-breaks), but when not, the fps is set to -fps.
-        [CLIValue("defaultfpsonbreak", "Makes it so that the fps is default when \"taking a break\" (-breaks), but when not, the fps is set to -fps.", "-breaks 50 -frames 30 -fps 10 -defaultfpsonbreak")]
+        [CLIValue("defaultfpsonbreak", "Makes it so that the fps is default when \"taking a break\" (-breaks), but when not, the fps is set to -fps.", "-breaks 50 -frames 30 -fps 10 +defaultfpsonbreak")]
         public bool defaultFPSOnBreak { get; set; } = false;
 
         // By default pngsmasher applies contrast, NTSC, and other non-corrupting effects during a break. This option makes frames "on break" to be identical to the input.
-        [CLIValue("nofxonbreak", "Makes it so that the fps is default when \"taking a break\" (-breaks), but when not, the fps is set to -fps.", "-breaks 50 -fps 10 -noFXOnBreak")]
+        [CLIValue("nofxonbreak", "Makes it so that the fps is default when \"taking a break\" (-breaks), but when not, the fps is set to -fps.", "-breaks 50 -fps 10 +nofxonbreak")]
         public bool noFXOnBreak { get; set; } = false;
 
         // Corrupts regions of an image
@@ -203,11 +212,11 @@ public class Types
         public int seed { get; set; } = -2147483647; // this is set to something random if unspecified
 
         // If the image is transparent, pngsmasher tries to localise the corruption to just solid pixels, but allows corruption if its pixel delta > 64
-        [CLIValue("clamp", "This ignores corruption changes to a transparent image if they are outside of the opaque area.", "-clamp")]
+        [CLIValue("clamp", "This ignores corruption changes to a transparent image if they are outside of the opaque area.", "+clamp")]
         public bool clamp { get; set; } = false;
 
         // Corruption often mangles alpha bits with other components, resulting in the whole image having a ghost-ish transparency to it. This adds a black background behind the image.
-        [CLIValue("bg", "This underlays a background in a transparent image. This is useful, because corruption mangles alpha bits of an image, resulting in transparent pixels everywhere. Plus, this gives the image a nice dark gritty corruption if you use black! Use -bgred -bggreen -bgblue to control the color.", "-bg -bgred 64 -bggreen 0 -bgblue 255")]
+        [CLIValue("bg", "This underlays a background in a transparent image. This is useful, because corruption mangles alpha bits of an image, resulting in transparent pixels everywhere. Plus, this gives the image a nice dark gritty corruption if you use black! Use -bgred -bggreen -bgblue to control the color.", "+bg -bgred 64 -bggreen 0 -bgblue 255")]
         public bool bg { get; set; } = false;
 
         // Seed to use when corrupting this image
@@ -223,19 +232,19 @@ public class Types
         public int bgBlue { get; set; } = -2147483647;
 
         // Simulates -clamp in -bg (tries not to underlay the background wherever nothing changed, useful to avoid flashing animated corruption)
-        [CLIValue("bgclamp", "Simulates -clamp in -bg (tries not to underlay the background wherever nothing changed, useful to avoid flashing animated corruption)", "-bg -bgclamp")]
+        [CLIValue("bgclamp", "Simulates +clamp in +bg (tries not to underlay the background wherever nothing changed, useful to avoid flashing animated corruption)", "+bg +bgclamp")]
         public bool bgClamp { get; set; } = true;
 
         // Toggles my attempt at an NTSC filter
-        [CLIValue("ntsc", "Toggles my attempt at an NTSC filter", "-ntsc")]
+        [CLIValue("ntsc", "Toggles my attempt at an NTSC filter", "+ntsc / -ntsc")]
         public bool ntsc { get; set; } = false;
 
         // Controls the amount of fringing in the NTSC filter
-        [CLIValue("fringe", "Amount of fringing in the NTSC filter", "-ntsc -fringe 1")]
+        [CLIValue("fringe", "Amount of fringing in the NTSC filter", "+ntsc -fringe 1")]
         public int fringe { get; set; } = 1;
 
         // Controls the amount of horizontal blurring in the NTSC filter
-        [CLIValue("xblur", "Amount of horizontal blurring in the NTSC filter", "-ntsc -xblur 4")]
+        [CLIValue("xblur", "Amount of horizontal blurring in the NTSC filter", "+ntsc -xblur 4")]
         public int xBlur { get; set; } = 3;
 
         // How strongly the colors persist in the horizontal blur of the NTSC filter
@@ -243,17 +252,20 @@ public class Types
         public float xBlurPower { get; set; } = 1;
 
         // Applies a fancy blurrable grayscale abberation effect that i made by accident
-        [CLIValue("grayabb", "Applies a fancy grayscale abberation effect that i made by accident", "-grayabb -grayabbwidth 2 -grayabbpower 0.75")]
+        [CLIValue("grayabb", "Applies a fancy grayscale abberation effect that i made by accident", "+grayabb -grayabbsize 2 -grayabbpower 0.75")]
         public bool grayAbberation { get; set; } = false;
 
-        [CLIValue("grayabbsize", "Grayscale abberation size", "-grayabb -grayabbwidth 4")]
+        [CLIValue("grayabbsize", "Grayscale abberation size", "+grayabb -grayabbsize 4")]
         public int grayAbberationWidth { get; set; } = 2;
 
-        [CLIValue("grayabbpower", "Grayscale abberation power (how much color bleeding happens)", "-grayabb -grayabbwidth 10 -grayabbpower 10 (makes the image look very faded)")]
+        [CLIValue("grayabbpower", "Grayscale abberation power (how much color bleeding happens)", "+grayabb -grayabbsize 10 -grayabbpower 10 (makes the image look very faded)")]
         public float grayAbberationPower { get; set; } = 0.75f;
 
-        // How far apart the color channels get "out of tune" in the grayscale abberation effect
-        [CLIValue("grayabbdetune", "How far apart the color channels get \"out of tune\" in the grayscale abberation effect", "-grayabb -grayabbwidth 2 -grayabbdetune 3")]
-        public int grayAbberationDetune { get; set; } = 2;
-    }
+		// How far apart the color channels get "out of tune" in the grayscale abberation effect
+		[CLIValue("grayabbdetune", "How far apart the color channels get \"out of tune\" in the grayscale abberation effect", "+grayabb -grayabbsize 2 -grayabbdetune 3")]
+		public int grayAbberationDetune { get; set; } = 2;
+
+		[CLIValue("rewidths", "test", "-rewidths")]
+		public int rewidths { get; set; } = 0;
+	}
 }

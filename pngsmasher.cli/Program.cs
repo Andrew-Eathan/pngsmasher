@@ -193,9 +193,10 @@ namespace pngsmasher.CLI
                 foreach (var param in vlist)
                 {
                     var attr = param.Value.GetCustomAttribute<CLIValueAttribute>();
+                    var prefix = param.Value.PropertyType == typeof(bool) ? "+/-" : "-";
 
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Write("\t| -" + param.Key);
+                    Write("\t| " + prefix + param.Key);
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Write("\t|  Usage: " + attr?.Example ?? "No example provided for this :(");
                     Console.ForegroundColor = ConsoleColor.Gray;

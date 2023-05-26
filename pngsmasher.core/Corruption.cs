@@ -383,6 +383,35 @@ namespace pngsmasher.Core
             return output;
         }
 
+        // this reinterprets the current color space (rgba8888) to another (by default rgba1616168), simulates the visuals, and converts back to rgba8888
+		public static byte[] ImageWidthReinterpret(byte[] rgba, int width, int height, int startHeight, int byteLossCount)
+        {
+            byte[] rgba_out = new byte[rgba.Length];
+
+            int input = 0;
+            for (int i = 0; i < rgba.Length; i++)
+            {
+                if (input >= rgba_out.Length) break;
+
+                rgba_out[input++] = rgba[i];
+
+                int ypos = (i / 4) / width;
+                bool condition;
+
+                if (byteLossCount > 0)
+                {
+                    condition = input % (width * 4 - byteLossCount) == 0;
+                } else condition = i % (width * 4 - byteLossCount) == 0;
+
+                if (ypos > startHeight && condition)
+                {
+                    input += byteLossCount;
+                }
+            }
+
+            return rgba_out;
+        }
+
 
         public static (byte[] rgbaout, int imagewidth, int imageheight, bool tookABreak) OldStyleCorruptImage(byte[] rgba, CLIOptions options, SeedRand srand, int width, int height, bool log, Logging logging)
         {
@@ -443,6 +472,15 @@ namespace pngsmasher.Core
                 imgwidth = (int)cwidth;
                 imgheight = (int)cheight;
             }
+
+            if (!tookABreak && options.rewidths > 0) {
+				for (int i = 0; i < options.rewidths; i++)
+				{
+					int deviation = (int)srand.Generate(-3, 3);
+					int randheight = (int)srand.Generate(0, imgheight);
+					rgba_out = ImageWidthReinterpret(rgba_out, imgwidth, imgheight, randheight, deviation);
+                }
+			}
 
             // apply buffer bitshift corruption effect
             int shiftAmount = options.bufferShiftBits;
