@@ -562,15 +562,6 @@ namespace pngsmasher.Core
                     logging.Write("\tClamped image corruption to opaque pixels", false);
             }
 
-            // image background underlay aux effect
-            if (applyAuxFX && options.bg)
-            {
-                UnderlayBackground(rgba_out, rgba_out, (byte)options.bgRed, (byte)options.bgGreen, (byte)options.bgBlue, options.bgClamp ? rgba_out : null);
-
-                if (log)
-                    logging.Write("\tUnderlayed a background in the image", false);
-            }
-
             // resize to normal after crunching
             if (applyAuxFX && cwidth != -1 && cheight != -1)
             {
@@ -584,21 +575,30 @@ namespace pngsmasher.Core
                 imgheight = calc.Height;
             }
 
-            if (applyAuxFX && options.ntsc)
-            {
-                rgba_out = NTSCEffect(rgba_out, imgwidth, imgheight, options.fringe, options.xBlur, options.xBlurPower);
-                if (log)
-                    logging.Write("\tApplied pngsmasher's NTSC filtering", false);
-            }
-
             if (applyAuxFX && options.grayAbberation)
             {
                 rgba_out = GrayAbberation(rgba_out, imgwidth, imgheight, options.grayAbberationWidth, options.grayAbberationPower, options.grayAbberationDetune);
                 if (log)
                     logging.Write("\tApplied pngsmasher's gray abberation", false);
-            }
+			}
 
-            return (rgba_out, imgwidth, imgheight, tookABreak);
+			// image background underlay aux effect
+			if (applyAuxFX && options.bg)
+			{
+				UnderlayBackground(rgba_out, rgba_out, (byte)options.bgRed, (byte)options.bgGreen, (byte)options.bgBlue, options.bgClamp ? rgba_out : null);
+
+				if (log)
+					logging.Write("\tUnderlayed a background in the image", false);
+			}
+
+			if (applyAuxFX && options.ntsc)
+			{
+				rgba_out = NTSCEffect(rgba_out, imgwidth, imgheight, options.fringe, options.xBlur, options.xBlurPower);
+				if (log)
+					logging.Write("\tApplied pngsmasher's NTSC filtering", false);
+			}
+
+			return (rgba_out, imgwidth, imgheight, tookABreak);
         }
     }
 }

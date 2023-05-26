@@ -232,8 +232,8 @@ public class Types
         public int bgBlue { get; set; } = -2147483647;
 
         // Simulates -clamp in -bg (tries not to underlay the background wherever nothing changed, useful to avoid flashing animated corruption)
-        [CLIValue("bgclamp", "Simulates +clamp in +bg (tries not to underlay the background wherever nothing changed, useful to avoid flashing animated corruption)", "+bg +bgclamp")]
-        public bool bgClamp { get; set; } = true;
+        [CLIValue("bgclamp", "Simulates +clamp in +bg (tries not to underlay the background wherever nothing changed, useful to avoid flashing animated corruption but may cause issues sometimes)", "+bg +bgclamp")]
+        public bool bgClamp { get; set; } = false;
 
         // Toggles my attempt at an NTSC filter
         [CLIValue("ntsc", "Toggles my attempt at an NTSC filter", "+ntsc / -ntsc")]
