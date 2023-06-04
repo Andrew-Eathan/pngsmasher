@@ -250,7 +250,7 @@ namespace pngsmasher.CLI
             else
             {
                 WError("Couldn't find file " + options.input + "!");
-                return -1;
+                return 1;
             }
 
             var timeTotal = new Stopwatch();
@@ -375,7 +375,7 @@ namespace pngsmasher.CLI
             Write("Done! (" + timeTotal.ElapsedMilliseconds + " ms total)");
 
             if (!didAnything)
-                return -2;
+                return 2;
             return 0;
         }
 
